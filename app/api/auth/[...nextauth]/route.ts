@@ -1,14 +1,13 @@
+import clientPromise from "@/lib/mongodb";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import { compare } from "bcryptjs"; // if you hash passwords
+import { compare } from "bcryptjs";
+import type { AuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import clientPromise from "../../../lib/mongodb"; // see below
 
-export default NextAuth({
+export const authOptions: AuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -20,17 +19,14 @@ export default NextAuth({
         if (!credentials) return null;
         const { email, password } = credentials;
 
-        // 1) Connect to your Users collection via Mongoose or MongoClient:
         const client = await clientPromise;
         const db = client.db();
         const user = await db.collection("users").findOne({ email });
         if (!user) return null;
 
-        // 2) Check hashed password:
-        const isValid = await compare(password, user.passwordHash);
+        const isValid = await compare(password, user.password);
         if (!isValid) return null;
 
-        // 3) Return a minimal user object to NextAuth:
         return {
           id: user._id.toString(),
           email: user.email,
@@ -38,20 +34,27 @@ export default NextAuth({
         };
       },
     }),
-    // (Optional) Add GitHubProvider, GoogleProvider, etc.
+    // any additional providers…
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/login",
     newUser: "/auth/signup",
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session, token, user }) {
-      // Include user.id in session for client side
-      if (token && session.user) {
-        session.user.id = token.sub;
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.id) {
+        session.user.id = token.id as string;
       }
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

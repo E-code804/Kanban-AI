@@ -1,8 +1,11 @@
 "use client";
 import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const SignUpForm = () => {
+  const router = useRouter();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -58,7 +61,7 @@ const SignUpForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/signup", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,9 +76,18 @@ const SignUpForm = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Handle success - redirect to sign in or dashboard
-        console.log("Account created successfully!");
-        // window.location.href = "/auth/signin";
+        const signInRes = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+          callback: "/",
+        });
+
+        if (signInRes?.error) {
+          setErrors({ submit: signInRes.error || "Something went wrong" });
+        }
+
+        router.push("/");
       } else {
         setErrors({ submit: data.message || "Something went wrong" });
       }
@@ -283,7 +295,7 @@ const SignUpForm = () => {
             href="/login"
             className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
           >
-            Sign in here
+            Login here
           </a>
         </p>
       </div>

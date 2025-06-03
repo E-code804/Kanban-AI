@@ -1,8 +1,14 @@
 "use client";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+// TODO: For here and signup, if session exists, redirect to home page
 const LoginForm = () => {
+  const router = useRouter();
+  const params = useSearchParams();
+  const callbackUrl = params.get("callbackUrl") || "/";
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -35,29 +41,18 @@ const LoginForm = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+      callbackUrl,
+    });
+    setIsLoading(false);
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.toLowerCase().trim(),
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.log(data);
-        setErrors({ submit: data.message || "Something went wrong" });
-      }
-    } catch (error) {
-      setErrors({ submit: `Network error. Please try again. ${error}` });
-    } finally {
-      setIsLoading(false);
+    if (res?.error) {
+      setErrors({ submit: res.error || "Something went wrong" });
+    } else {
+      router.push("/");
     }
   };
 

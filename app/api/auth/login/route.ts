@@ -1,6 +1,6 @@
+import clientPromise from "@/lib/mongodb";
 import { compare } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
     }
 
-    const passwordCompare = await compare(password, user.hashedPassword);
+    const passwordCompare = await compare(password, user.password);
     if (!passwordCompare) {
       return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
     }

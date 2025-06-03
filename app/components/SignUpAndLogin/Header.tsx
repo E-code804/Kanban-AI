@@ -3,10 +3,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ isLogin }) => {
-  const message = isLogin
-    ? "Login to your account"
-    : "Create your account to get started";
-
   return (
     <div className="text-center mb-8">
       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full mb-4">
@@ -15,7 +11,9 @@ const Header: React.FC<HeaderProps> = ({ isLogin }) => {
         </div>
       </div>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Kanban AI</h1>
-      <p className="text-gray-600">{message}</p>
+      <p className="text-gray-600">
+        {isLogin ? "Login to your account" : "Create your account to get started"}
+      </p>
     </div>
   );
 };

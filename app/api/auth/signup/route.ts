@@ -1,6 +1,6 @@
+import clientPromise from "@/lib/mongodb";
 import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hash(password, 10);
     const newUser = await db
       .collection("users")
-      .insertOne({ name, email, hashedPassword });
+      .insertOne({ name, email, password: hashedPassword });
 
     return NextResponse.json(
       { message: "New user sucessfully created", id: newUser.insertedId },
