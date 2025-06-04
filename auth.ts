@@ -1,8 +1,13 @@
-import clientPromise from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { compare } from "bcryptjs";
+import { MongoClient } from "mongodb";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import User from "./db/models/User";
+
+const client = new MongoClient(process.env.MONGODB_URI!);
+const clientPromise = client.connect();
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
@@ -18,9 +23,8 @@ export const authOptions: NextAuthOptions = {
         if (!credentials) return null;
         const { email, password } = credentials;
 
-        const client = await clientPromise;
-        const db = client.db();
-        const user = await db.collection("users").findOne({ email });
+        await connectDB();
+        const user = await User.findOne({ email });
         if (!user) return null;
 
         const isValid = await compare(password, user.password);

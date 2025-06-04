@@ -1,5 +1,5 @@
 // src/models/Task.ts (Mongoose)
-import { Document, Schema, Types, model } from "mongoose";
+import mongoose, { Document, Schema, Types, model } from "mongoose";
 
 export interface ITask extends Document {
   boardId: Types.ObjectId;
@@ -34,4 +34,4 @@ const TaskSchema = new Schema<ITask>(
   { timestamps: true } // createdAt & updatedAt
 );
 
-export default model<ITask>("Task", TaskSchema);
+export default mongoose.models.Task || model<ITask>("Task", TaskSchema);

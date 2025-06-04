@@ -1,6 +1,6 @@
 import { authOptions } from "@/auth";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import Board from "@/db/models/Board";
+import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -10,11 +10,7 @@ import { NextResponse } from "next/server";
 //   members: [{ type: Schema.Types.ObjectId, ref: "User" }],
 //   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 //   createdAt: { type: Date, default: Date.now },
-// }); check somehwere to make sure a user cannot join a board twice.
-// await db.collection("boards").updateOne(
-//   { _id: boardId },
-//   { $addToSet: { members: userId } } // Only adds if not already present
-// );
+// });
 
 export async function GET() {
   try {
@@ -24,12 +20,11 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = new ObjectId(session.user.id);
+    const userId = session.user.id;
 
-    const client = await clientPromise;
-    const db = client.db();
+    await connectDB();
 
-    const boards = await db.collection("boards").find({ members: userId }).toArray();
+    const boards = await Board.find({ members: userId });
 
     return NextResponse.json(
       { message: "Successfully retrieved boards for user.", boards },
@@ -53,14 +48,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = new ObjectId(session.user.id);
+    const userId = session.user.id;
 
     if (!title?.trim()) {
       return NextResponse.json({ message: "Missing fields." }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    connectDB();
 
     const newBoard = {
       title,
@@ -69,7 +63,7 @@ export async function POST(req: Request) {
       createdBy: userId,
       createdAt: new Date(),
     };
-    const result = await db.collection("boards").insertOne(newBoard);
+    const result = await Board.insertOne(newBoard);
 
     return NextResponse.json(
       { boardId: result.insertedId, ...newBoard },

@@ -1,5 +1,5 @@
 // src/models/Board.ts (Mongoose)
-import { Document, Schema, Types, model } from "mongoose";
+import mongoose, { Document, Schema, Types, model } from "mongoose";
 
 export interface IBoard extends Document {
   title: string;
@@ -20,4 +20,4 @@ const BoardSchema = new Schema<IBoard>({
 BoardSchema.index({ createdBy: 1 });
 BoardSchema.index({ members: 1 });
 
-export default model<IBoard>("Board", BoardSchema);
+export default mongoose.models.Board || model<IBoard>("Board", BoardSchema);

@@ -1,4 +1,5 @@
-import clientPromise from "@/lib/mongodb";
+import User from "@/db/models/User";
+import { connectDB } from "@/lib/mongodb";
 import { compare } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,10 +12,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Missing fields." }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    await connectDB();
 
-    const user = await db.collection("users").findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
     }

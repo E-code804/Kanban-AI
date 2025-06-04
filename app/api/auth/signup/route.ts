@@ -1,4 +1,5 @@
-import clientPromise from "@/lib/mongodb";
+import User from "@/db/models/User";
+import { connectDB } from "@/lib/mongodb";
 import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,10 +12,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Missing fields." }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    await connectDB();
 
-    const existing = await db.collection("users").findOne({ email });
+    const existing = await User.findOne({ email });
     if (existing) {
       return NextResponse.json(
         { message: "User already exists with this email." },
@@ -23,9 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await hash(password, 10);
-    const newUser = await db
-      .collection("users")
-      .insertOne({ name, email, password: hashedPassword });
+    const newUser = await User.insertOne({ name, email, password: hashedPassword });
 
     return NextResponse.json(
       { message: "New user sucessfully created", id: newUser.insertedId },
