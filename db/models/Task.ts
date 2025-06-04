@@ -7,7 +7,7 @@ export interface ITask extends Document {
   description?: string;
   labels: string[];
   status: "notStarted" | "inProgress" | "verification" | "finished";
-  priority: number;
+  priority: "Low" | "Medium" | "High";
   dueDate?: Date;
   createdBy: Types.ObjectId;
   assignedTo?: Types.ObjectId;
@@ -26,7 +26,11 @@ const TaskSchema = new Schema<ITask>(
       enum: ["notStarted", "inProgress", "verification", "finished"],
       default: "notStarted",
     },
-    priority: { type: Number, default: 3 },
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
+      default: "Medium",
+    },
     dueDate: { type: Date },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     assignedTo: { type: Schema.Types.ObjectId, ref: "User" },

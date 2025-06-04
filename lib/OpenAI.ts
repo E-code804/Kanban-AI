@@ -20,7 +20,8 @@ interface KanbanSuggestion {
  * @returns A parsed JSON object conforming to KanbanAdvice.
  */
 export const generateKanbanAdviceJson = async (
-  task: string
+  task: string,
+  assigneeId: string
 ): Promise<KanbanSuggestion> => {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -32,7 +33,7 @@ You are an assistant that converts free-form task descriptions into a JSON objec
 - description: longer details.
 - labels: an array of string labels (tags). Be sure to assign labels based on the task's field and side of the tech stack (if necessary).
 - dueDate: in ISO format (YYYY-MM-DD), if mentioned; otherwise determine how long this task should take.
-- assignedTo: name of assignee (string), if mentioned; otherwise null.
+- assignedTo: ID of assignee (string), if mentioned; otherwise null.
 - priority: one of "High", "Medium", or "Low"; estimate based on severity words or context.
 
 Output ONLY valid JSON. For example:
@@ -45,7 +46,7 @@ Output ONLY valid JSON. For example:
   "priority": "High"
 }
 If any field cannot be inferred, set it to null or an empty array. 
-Here is the task: ${task}
+Here is the task: ${task}, assign to user with ID: ${assigneeId}.
   `.trim();
 
   // Instruct the model to return valid JSON and follow the schema below.

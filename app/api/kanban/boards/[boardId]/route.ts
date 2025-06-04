@@ -60,6 +60,8 @@ export async function DELETE(
 
     await connectDB();
 
+    // TODO, when a board is deleted, delete all tasks associated w/ it too.
+
     // First check to ensure the requestor is the creator of the board
     const board = await Board.findOne({ _id: boardId });
     if (!board) {
