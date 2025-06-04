@@ -17,4 +17,7 @@ const BoardSchema = new Schema<IBoard>({
   createdAt: { type: Date, default: Date.now },
 });
 
+BoardSchema.index({ createdBy: 1 });
+BoardSchema.index({ members: 1 });
+
 export default model<IBoard>("Board", BoardSchema);

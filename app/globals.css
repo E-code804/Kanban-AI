@@ -54,3 +54,8 @@ body {
 .eye-styles {
   @apply h-5 w-5 text-gray-400 hover:text-gray-600;
 }
+
+/* Styles for Navbar */
+.hamburger {
+  @apply bg-[#6b7280] block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm;
+}
