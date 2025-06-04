@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing fields." }, { status: 400 });
     }
 
-    connectDB();
+    await connectDB();
 
     const newBoard = {
       title,
@@ -63,12 +63,9 @@ export async function POST(req: Request) {
       createdBy: userId,
       createdAt: new Date(),
     };
-    const result = await Board.insertOne(newBoard);
+    const result = await Board.create(newBoard);
 
-    return NextResponse.json(
-      { boardId: result.insertedId, ...newBoard },
-      { status: 201 }
-    );
+    return NextResponse.json({ boardId: result._id, ...newBoard }, { status: 201 });
   } catch (err) {
     return NextResponse.json({
       error: err instanceof Error ? err.message : "An unknown error occurred",
