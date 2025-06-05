@@ -1,13 +1,9 @@
-/* 
-TODO:
-Delete tasks.
-*/
-import { authOptions } from "@/auth";
 import Task from "@/db/models/Task";
+import { getUserId } from "@/lib/apiAuth";
+import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { generateKanbanAdviceJson } from "@/lib/OpenAI";
 import { Types } from "mongoose";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 // export interface ITask extends Document {
@@ -24,18 +20,32 @@ import { NextResponse } from "next/server";
 //   updatedAt: Date;
 // }
 
+/**
+ * Retrieve all tasks for a specific board.
+ *
+ * @param req     - A Request object (no body required for GET).
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board whose tasks are being requested)
+ *
+ * @returns NextResponse containing a JSON object with:
+ *   • 200 OK:
+ *     {
+ *       tasks: Task[]
+ *     }
+ *     – An array of task objects belonging to the specified board.
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function GET(
   req: Request,
   { params }: { params: { boardId: string } }
 ) {
   try {
     const { boardId } = await params;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     await connectDB();
 
@@ -44,13 +54,54 @@ export async function GET(
     const tasks = await Task.find({ boardId });
     return NextResponse.json({ tasks }, { status: 200 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
 
+/**
+ * Create a new task in a specified board using AI‐generated advice.
+ *
+ * @param req     - A Request object whose JSON body must include:
+ *   - task: string
+ *     Example: "Write a widget to show sales data by region, due next Tuesday, assign to Jess"
+ *     – This free‐form string is sent to an AI helper that returns structured task fields
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board in which to create the new task)
+ *
+ * Internally, this function:
+ *   1. Validates that the “task” field exists.
+ *   2. Connects to MongoDB.
+ *   3. Calls `generateKanbanAdviceJson(task, "<exampleUserId>")` to obtain:
+ *      {
+ *        title: string,
+ *        description?: string,
+ *        labels?: string[],
+ *        dueDate?: Date,
+ *        assignedTo?: string,
+ *        priority?: "Low" | "Medium" | "High"
+ *      }
+ *   4. Combines the AI‐generated fields with:
+ *      - boardId (from params)
+ *      - createdBy (the authenticated user’s ID obtained via getUserId)
+ *   5. Inserts the new task document into the `tasks` collection.
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 201 Created:
+ *     {
+ *       taskId: "<MongoDB ObjectId of the newly created task>"
+ *     }
+ *
+ *   • 400 Bad Request (missing “task” field):
+ *     {
+ *       error: "Task are required."
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function POST(
   req: Request,
   { params }: { params: { boardId: string } }
@@ -58,14 +109,7 @@ export async function POST(
   try {
     const { task } = await req.json();
     const { boardId } = await params;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id;
+    const userId = await getUserId(req);
 
     await connectDB();
 
@@ -88,13 +132,73 @@ export async function POST(
 
     return NextResponse.json({ taskId: newTaskResult._id }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
 
+/**
+ * Update one or more fields on an existing task within a board.
+ *
+ * @param req     - A Request object whose JSON body must include:
+ *   - taskId: string (the ID of the task to update)  [required]
+ *   - title?: string
+ *   - description?: string
+ *   - status?: "notStarted" | "inProgress" | "verification" | "finished"
+ *   - priority?: "Low" | "Medium" | "High"
+ *   - dueDate?: string (ISO date string, e.g. "2025-06-10T00:00:00.000Z")
+ *   - assignedTo?: string (ObjectId of the user to assign to)
+ *   – Any combination of these optional fields may be sent; omitted fields remain unchanged.
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board that owns the task)
+ *
+ * Internally, this function:
+ *   1. Validates that `taskId` is provided.
+ *   2. Connects to MongoDB.
+ *   3. Fetches the existing task by `taskId` and checks its `boardId` matches the route’s `boardId`.
+ *   4. If found, builds an `updateFields` object from any valid optional inputs:
+ *      – Converts `dueDate` (if present) to a Date instance.
+ *      – Converts `assignedTo` (if present) to a Mongoose ObjectId.
+ *   5. If no valid update fields were supplied, returns a 400.
+ *   6. Applies the update via `findByIdAndUpdate`, returning the updated document.
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       _id: string,
+ *       boardId: string,
+ *       title: string,
+ *       description?: string,
+ *       labels: string[],
+ *       status: string,
+ *       priority: string,
+ *       dueDate?: string,
+ *       createdBy: string,
+ *       assignedTo?: string,
+ *       createdAt: string,
+ *       updatedAt: string
+ *     }
+ *     – The full updated task document.
+ *
+ *   • 400 Bad Request (missing taskId or no valid fields to update):
+ *     {
+ *       error: "Missing taskId"
+ *     }
+ *     or
+ *     {
+ *       error: "No valid fields provided to update"
+ *     }
+ *
+ *   • 404 Not Found (task doesn’t exist or doesn’t belong to this board):
+ *     {
+ *       error: "Task not found on this board"
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception or failed update):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: { boardId: string } }
@@ -102,12 +206,6 @@ export async function PATCH(
   try {
     const data = await req.json();
     const { boardId } = await params;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     await connectDB();
 
@@ -199,9 +297,6 @@ export async function PATCH(
     // Return the updated task
     return NextResponse.json(updatedTask, { status: 200 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }

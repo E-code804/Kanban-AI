@@ -1,7 +1,39 @@
 import User from "@/db/models/User";
+import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { compare } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
+
+/**
+ * Authenticate a user by verifying email and password against the database.
+ *
+ * @param req - A NextRequest whose JSON body must include:
+ *   - email: string (the user’s registered email address)
+ *   - password: string (the plaintext password to compare)
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       message: "Successfully logged in.",
+ *       id: "<MongoDB ObjectId of the user>"
+ *     }
+ *
+ *   • 400 Bad Request (missing fields):
+ *     {
+ *       message: "Missing fields."
+ *     }
+ *
+ *   • 401 Unauthorized (invalid credentials):
+ *     {
+ *       message: "Invalid credentials."
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,9 +61,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }

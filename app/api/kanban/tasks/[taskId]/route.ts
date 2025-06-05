@@ -1,18 +1,40 @@
 import Board from "@/db/models/Board";
 import Task from "@/db/models/Task";
-import { requireUserSession } from "@/lib/apiAuth";
+import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { ObjectId, Types } from "mongoose";
 import { NextResponse } from "next/server";
 
+/**
+ * Retrieve a single task by its ID.
+ *
+ * @param req     - A Request object (no body required for GET).
+ * @param params  - An object containing:
+ *   - taskId: string (the ID of the task to retrieve)
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       message: "Task found",
+ *       task: Task
+ *     }
+ *     – The full task document with all its fields.
+ *
+ *   • 404 Not Found (no task with the given ID exists):
+ *     {
+ *       error: "Task not found."
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function GET(req: Request, { params }: { params: { taskId: string } }) {
   try {
     const { taskId } = await params;
-
-    const userId = await requireUserSession();
-    if (!userId)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     await connectDB();
 
@@ -27,6 +49,78 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
   }
 }
 
+/**
+ * Update specified fields of an existing task, ensuring only the task creator or board creator may edit.
+ *
+ * @param req     - A Request object whose JSON body may include:
+ *   - title?: string
+ *   - description?: string
+ *   - status?: "notStarted" | "inProgress" | "verification" | "finished"
+ *   - priority?: "Low" | "Medium" | "High"
+ *   - dueDate?: string (ISO date string, e.g. "2025-06-10T00:00:00.000Z")
+ *   - assignedTo?: string (ObjectId of the user to assign to)
+ *   – At least one of these fields must be provided to update; omitted fields remain unchanged.
+ * @param params  - An object containing:
+ *   - taskId: string (the ID of the task to update)
+ *
+ * Internally, this function:
+ *   1. Connects to MongoDB.
+ *   2. Fetches the existing task by `taskId`. If not found, returns 404.
+ *   3. Retrieves the associated board and checks that the requesting user (from getUserId) is a member.
+ *   4. Verifies that the `userId` matches either `task.createdBy` or `board.createdBy`. If not, returns 403.
+ *   5. Builds an `updateFields` object from any valid optional inputs:
+ *      – Converts `dueDate` (if present) to a Date instance.
+ *      – Converts `assignedTo` (if present) to a Mongoose ObjectId.
+ *   6. If no valid update fields were supplied, returns 400.
+ *   7. Applies the update via `findByIdAndUpdate`, returning the updated document.
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       _id: string,
+ *       boardId: string,
+ *       title: string,
+ *       description?: string,
+ *       labels: string[],
+ *       status: string,
+ *       priority: string,
+ *       dueDate?: string,
+ *       createdBy: string,
+ *       assignedTo?: string,
+ *       createdAt: string,
+ *       updatedAt: string
+ *     }
+ *     – The full updated task document.
+ *
+ *   • 400 Bad Request:
+ *     {
+ *       error: "No valid fields provided to update"
+ *     }
+ *     or
+ *     {
+ *       error: "Invalid assignedTo user ID"
+ *     }
+ *
+ *   • 403 Forbidden:
+ *     {
+ *       error: "Not a board member"
+ *     }
+ *     or
+ *     {
+ *       error: "Only task or board creator can edit"
+ *     }
+ *
+ *   • 404 Not Found:
+ *     {
+ *       error: "Task not found."
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception or failed update):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: { taskId: string } }
@@ -35,9 +129,7 @@ export async function PATCH(
     const data = await req.json();
     const { taskId } = await params;
 
-    const userId = await requireUserSession();
-    if (!userId)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await getUserId(req);
 
     await connectDB();
 

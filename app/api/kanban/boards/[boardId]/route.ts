@@ -1,24 +1,49 @@
-import { authOptions } from "@/auth";
 import Board from "@/db/models/Board";
+import Task from "@/db/models/Task";
+import { getUserId } from "@/lib/apiAuth";
+import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
+/**
+ * Retrieve a specific board and verify that the requesting user is a member.
+ *
+ * @param req     - A Request object (no body required for GET).
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board to retrieve)
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       message: "Found board",
+ *       board: Board
+ *     }
+ *     – The full board document, including its members and metadata.
+ *
+ *   • 403 Forbidden (user is not a member of the board):
+ *     {
+ *       message: "User not in board"
+ *     }
+ *
+ *   • 404 Not Found (board does not exist):
+ *     {
+ *       error: "Board not found"
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function GET(
-  request: Request,
+  req: Request,
   { params }: { params: { boardId: string } }
 ) {
   try {
     const { boardId } = await params;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id;
+    const userId = await getUserId(req);
 
     await connectDB();
 
@@ -36,80 +61,167 @@ export async function GET(
 
     return NextResponse.json({ message: "Found board", board }, { status: 200 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
 
+/**
+ * Delete a board if the requesting user is its creator.
+ *
+ * @param req     - A Request object whose JSON body must include:
+ *   - userId: string (the ID of the user attempting the deletion)
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board to delete)
+ *
+ * Internally, this function:
+ *   1. Connects to MongoDB.
+ *   2. Finds the board by _id.
+ *   3. Verifies that `board.createdBy` equals `userId`.
+ *   4. Deletes the board document if the user is authorized.
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       message: "Board deleted successfully"
+ *     }
+ *
+ *   • 400 Bad Request (user is not the creator):
+ *     {
+ *       error: "Cannot delete board if you are not the creator"
+ *     }
+ *
+ *   • 404 Not Found (board does not exist or deletion count is zero):
+ *     {
+ *       error: "Board not found"
+ *     }
+ *     or
+ *     {
+ *       message: "Board deleted UNSUCCESSFULLY"
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function DELETE(
-  request: Request,
+  req: Request,
   { params }: { params: { boardId: string } }
 ) {
   try {
     const { boardId } = await params;
-    const body = await request.json();
-    const { userId } = body;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserId(req);
 
     await connectDB();
 
-    // TODO, when a board is deleted, delete all tasks associated w/ it too.
-
     // First check to ensure the requestor is the creator of the board
     const board = await Board.findOne({ _id: boardId });
-    if (!board) {
+    if (!board)
       return NextResponse.json({ error: "Board not found" }, { status: 404 });
-    }
 
-    // Prevent removing the board creator
-    if (!board.createdBy.equals(userId)) {
+    // Prevent removing the board if not the creator
+    console.log(board.createdBy, userId);
+
+    if (!(board.createdBy.toString() === userId)) {
       return NextResponse.json(
         { error: "Cannot delete board if you are not the creator" },
         { status: 400 }
       );
     }
 
+    // Delete all tasks associated w/ the board
+    const deletedTasks = await Task.deleteMany({ boardId });
     const deleteResult = await Board.deleteOne({ _id: boardId });
-    if (deleteResult.deletedCount === 1) {
+
+    if (deleteResult.deletedCount === 1 && deletedTasks.deletedCount === 1) {
       return NextResponse.json(
-        { message: "Board deleted successfully" },
+        { message: "Board & tasks deleted successfully" },
         { status: 200 }
       );
-    } else {
+    } else if (deleteResult.deletedCount === 0 && deletedTasks.deletedCount === 0) {
       return NextResponse.json(
-        { message: "Board deleted UNsuccessfully" },
+        { error: "Board and tasks deleted unsuccessfully" },
+        { status: 404 }
+      );
+    } else if (deleteResult.deletedCount === 0) {
+      return NextResponse.json(
+        { error: "Board deleted unsuccessfully" },
+        { status: 404 }
+      );
+    } else if (deletedTasks.deletedCount === 0) {
+      return NextResponse.json(
+        { error: "Tasks deleted unsuccessfully" },
+        { status: 404 }
+      );
+    } else {
+      // Fallback—shouldn't normally occur, but handles any other unexpected combination
+      return NextResponse.json(
+        { error: "Deletion partially failed" },
         { status: 404 }
       );
     }
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
 
+/**
+ * Modify the membership of a board by adding or removing a user.
+ *
+ * @param req     - A Request object whose JSON body must include:
+ *   - action: string
+ *     • "add_member" to add the user to the board
+ *     • "remove_member" to remove the user from the board
+ *   - userId: string (the ID of the user to add or remove)
+ * @param params  - An object containing:
+ *   - boardId: string (the ID of the board to update)
+ *
+ * Internally, this function:
+ *   1. Connects to MongoDB.
+ *   2. Uses a switch on `action`:
+ *     – "add_member": adds `userId` to the `members` array (no duplication).
+ *     – "remove_member": first retrieves the board, ensures `userId` is not the creator, then removes it.
+ *   3. Returns success or error based on update results.
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK (member added or removed):
+ *     {
+ *       message: "Member added successfully"
+ *     }
+ *     or
+ *     {
+ *       message: "Member removed successfully"
+ *     }
+ *
+ *   • 400 Bad Request (invalid action or attempt to remove creator):
+ *     {
+ *       error: "Invalid action. Supported actions: add_member, remove_member"
+ *     }
+ *     or
+ *     {
+ *       error: "Cannot remove board creator"
+ *     }
+ *
+ *   • 404 Not Found (board does not exist):
+ *     {
+ *       error: "Board not found"
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function PATCH(
-  request: Request,
+  req: Request,
   { params }: { params: { boardId: string } }
 ) {
   try {
     const { boardId } = await params;
-    const body = await request.json();
+    const body = await req.json();
     const { action, userId } = body;
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     await connectDB();
 
@@ -161,9 +273,6 @@ export async function PATCH(
         );
     }
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
