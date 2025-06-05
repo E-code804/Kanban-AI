@@ -3,9 +3,12 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  // Verify the NextAuth JWT in the incoming request
-  console.log("In middleware");
+  // Let next auth do its thing.
+  if (req.nextUrl.pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
 
+  // Verify the NextAuth JWT in the incoming request
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
