@@ -1,3 +1,4 @@
+"use client";
 import { Task, TaskContextAction } from "@/types/Task/task";
 import { createContext, ReactNode, useReducer } from "react";
 
@@ -17,6 +18,7 @@ export const TaskContext = createContext<{
   dispatch: React.Dispatch<TaskContextAction>;
 } | null>(null);
 
+// Could have a loading state
 export const taskReducer = (state: TaskContextState, action: TaskContextAction) => {
   switch (action.type) {
     case "SET_TASKS": {

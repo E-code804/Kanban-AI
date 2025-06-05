@@ -1,4 +1,6 @@
+import { useTask } from "@/app/hooks/useTaskContext";
 import { Board } from "@/types/board";
+import { Types } from "mongoose";
 import React from "react";
 
 interface UserBoardsProps {
@@ -7,6 +9,28 @@ interface UserBoardsProps {
 }
 
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
+  const { dispatch } = useTask();
+
+  const handleBoardClick = async (boardId: Types.ObjectId) => {
+    try {
+      const boardIdStr = boardId.toString();
+      const response = await fetch(`/api/kanban/boards/${boardId}/task`);
+
+      if (!response.ok) {
+        console.log("An error occurred fetching boards.");
+        return;
+      }
+
+      const json = await response.json();
+      dispatch({
+        type: "SET_TASKS",
+        payload: { boardId: boardIdStr, tasks: json.tasks },
+      });
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -31,10 +55,10 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
       ) : boards.length > 0 ? (
         <div className="space-y-2">
           {boards.map((board) => (
-            <a
+            <div
               key={board._id.toString()}
-              href={`/board/${board._id}`}
-              className="block p-3 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-transparent hover:border-indigo-100 transition-all duration-200 group"
+              onClick={() => handleBoardClick(board._id)}
+              className="cursor-pointer block p-3 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-transparent hover:border-indigo-100 transition-all duration-200 group"
             >
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-3 group-hover:from-indigo-600 group-hover:to-purple-600"></div>
@@ -58,7 +82,7 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
                   />
                 </svg>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       ) : (
