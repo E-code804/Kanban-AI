@@ -1,9 +1,12 @@
-"use client";
 import { useTask } from "@/app/hooks/useTaskContext";
 import React from "react";
 
 const TaskBoardHeader = () => {
   const { state } = useTask();
+
+  // const handleAddTaskClick = () => {
+
+  // }
   return (
     <div className="flex items-center justify-between mb-4">
       <div>

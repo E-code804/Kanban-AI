@@ -11,6 +11,8 @@ interface UserBoardsProps {
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
   const { dispatch } = useTask();
 
+  // Sets the board ID and fetches tasks for that board.
+  // Store in local storage the prev board ID and tasks so refreshing doesn't reset.s
   const handleBoardClick = async (boardId: Types.ObjectId) => {
     try {
       const boardIdStr = boardId.toString();

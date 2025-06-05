@@ -3,7 +3,7 @@ import Task from "@/db/models/Task";
 import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+// import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 /**
@@ -43,21 +43,24 @@ export async function GET(
 ) {
   try {
     const { boardId } = await params;
-    const userId = await getUserId(req);
+    // const userId = await getUserId(req);
 
     await connectDB();
 
-    const board = await Board.findById(boardId);
+    const board = await Board.findById(boardId).populate({
+      path: "members",
+      select: "name",
+    });
 
     if (!board) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });
     }
 
     // checking for membership in this board
-    const isMemeber = board.members.some((m: ObjectId) => m.toString() == userId);
-    if (!isMemeber) {
-      return NextResponse.json({ message: "User not in board" }, { status: 403 });
-    }
+    // const isMemeber = board.members.some((m: ObjectId) => m.toString() == userId);
+    // if (!isMemeber) {
+    //   return NextResponse.json({ message: "User not in board" }, { status: 403 });
+    // }
 
     return NextResponse.json({ message: "Found board", board }, { status: 200 });
   } catch (err) {

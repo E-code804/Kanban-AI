@@ -1,4 +1,3 @@
-"use client";
 import { Task } from "@/types/Task/task";
 import TaskCard from "./TaskCard";
 
@@ -24,21 +23,6 @@ const TaskColumn = ({ title, tasks, color, icon }: TaskColumnProps) => {
             <span className="bg-white bg-opacity-80 text-gray-700 text-sm font-medium px-2 py-1 rounded-full">
               {tasks.length}
             </span>
-            <button className="ml-2 p-1 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors duration-200">
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -49,6 +33,7 @@ const TaskColumn = ({ title, tasks, color, icon }: TaskColumnProps) => {
           tasks.map((task) => <TaskCard key={task._id.toString()} task={task} />)
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+            {/* Icon for no tasks */}
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
               <svg
                 className="w-6 h-6"

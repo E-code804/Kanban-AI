@@ -1,4 +1,3 @@
-"use client";
 import { Task } from "@/types/Task/task";
 import { useEffect, useState } from "react";
 
@@ -10,11 +9,11 @@ const TaskCard = ({ task }: TaskCardProps) => {
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
-      case "high":
+      case "High":
         return "bg-red-100 text-red-700 border-red-200";
-      case "medium":
+      case "Medium":
         return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "low":
+      case "Low":
         return "bg-green-100 text-green-700 border-green-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
@@ -43,6 +42,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-3 hover:shadow-md transition-shadow duration-200 cursor-pointer group">
+      {/* Header of the task */}
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-200 line-clamp-2">
           {task.title}
@@ -62,6 +62,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
         <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
       )}
 
+      {/* Name & due date */}
       <div className="flex items-center justify-between text-xs text-gray-500">
         {task.assignedTo && (
           <div className="flex items-center justify-between text-xs text-gray-500">
