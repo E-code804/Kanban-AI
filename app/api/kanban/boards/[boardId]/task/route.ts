@@ -51,7 +51,7 @@ export async function GET(
 
     // Make sure board is valid on only members can get the tasks.
 
-    const tasks = await Task.find({ boardId });
+    const tasks = await Task.find({ boardId }).sort({ dueDate: 1 });
     return NextResponse.json({ tasks }, { status: 200 });
   } catch (err) {
     return handleServerError(err);
