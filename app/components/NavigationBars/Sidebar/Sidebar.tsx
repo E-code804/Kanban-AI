@@ -84,7 +84,7 @@ const Sidebar = ({ onClose }: SidebarProps) => {
         {/* Quick Actions */}
         <Actions />
 
-        {/* User's Boards */}
+        {/* User's Boards, add close to here so when people click on a board side bar goes away. */}
         <UserBoards loading={loading} boards={boards} />
 
         {/* Navigation Links */}

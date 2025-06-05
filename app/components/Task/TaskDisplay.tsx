@@ -2,12 +2,15 @@
 "use client";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Task } from "@/types/Task/task";
-import TaskBaordHeader from "./TaskBoardComponents/TaskBoardHeader";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import TaskBoardHeader from "./TaskBoardComponents/TaskBoardHeader";
 import TaskBoardStats from "./TaskBoardComponents/TaskBoardStats";
 import TaskColumn from "./TaskColumn";
 
+type TaskStatus = "notStarted" | "inProgress" | "verification" | "finished";
+
 const TaskDisplay = () => {
-  const { state } = useTask();
+  const { state, dispatch } = useTask();
 
   // Column configurations
   const columns = [
@@ -106,29 +109,78 @@ const TaskDisplay = () => {
     return state.tasks.filter((task: Task) => task.status === status);
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // If dropped outside a droppable area
+    if (!destination) {
+      return;
+    }
+
+    // If dropped in the same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    // Find the task being moved
+    const draggedTask = state.tasks.find(
+      (task: Task) => task._id.toString() === draggableId
+    );
+
+    if (!draggedTask) {
+      return;
+    }
+
+    // Update task status if moved to different column
+    if (destination.droppableId !== source.droppableId) {
+      const updatedTask = {
+        ...draggedTask,
+        status: destination.droppableId as TaskStatus,
+      };
+
+      // Dispatch action to update task status
+      // You'll need to implement this action in your context
+      dispatch({
+        type: "UPDATE_TASK",
+        payload: {
+          taskId: draggedTask._id.toString(),
+          updates: updatedTask,
+        },
+      });
+
+      // Optional: Make API call to persist the change
+      // updateTaskStatus(draggedTask._id, destination.droppableId);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">
         {/* Header, has title and add task button. */}
-        <TaskBaordHeader />
+        <TaskBoardHeader />
 
         {/* Stats */}
         <TaskBoardStats columns={columns} getTasksByStatus={getTasksByStatus} />
       </div>
 
       {/* Kanban Columns */}
-      <div className="flex gap-6 overflow-x-auto pb-6">
-        {columns.map((column) => (
-          <TaskColumn
-            key={column.status}
-            title={column.title}
-            tasks={getTasksByStatus(column.status)}
-            status={column.status}
-            color={column.color}
-            icon={column.icon}
-          />
-        ))}
-      </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-6 overflow-x-auto pb-6">
+          {columns.map((column) => (
+            <TaskColumn
+              key={column.status}
+              title={column.title}
+              tasks={getTasksByStatus(column.status)}
+              status={column.status}
+              color={column.color}
+              icon={column.icon}
+            />
+          ))}
+        </div>
+      </DragDropContext>
     </div>
   );
 };

@@ -153,7 +153,7 @@ export async function PATCH(
       board.createdBy.toString() !== userId
     ) {
       return NextResponse.json(
-        { error: "Only task or board creator can edit" },
+        { error: "Only task creator or board creator can edit" },
         { status: 403 }
       );
     }
