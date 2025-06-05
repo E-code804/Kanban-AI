@@ -27,7 +27,8 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({ email });
         if (!user) return null;
 
-        const isValid = await compare(password, user.password);
+        const userObj = user.toObject();
+        const isValid = await compare(password, userObj.password);
         if (!isValid) return null;
 
         return {

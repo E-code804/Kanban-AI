@@ -1,20 +1,18 @@
-import { authOptions } from "@/auth";
 import Board from "@/db/models/Board";
 import Task from "@/db/models/Task";
+import { requireUserSession } from "@/lib/apiAuth";
+import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { ObjectId, Types } from "mongoose";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request, { params }: { params: { taskId: string } }) {
   try {
     const { taskId } = await params;
 
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
+    const userId = await requireUserSession();
+    if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     await connectDB();
 
@@ -25,10 +23,7 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
 
     return NextResponse.json({ message: "Task found", task }, { status: 200 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    return handleServerError(err);
   }
 }
 
@@ -40,21 +35,13 @@ export async function PATCH(
     const data = await req.json();
     const { taskId } = await params;
 
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
+    const userId = await requireUserSession();
+    if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id;
 
     await connectDB();
 
     const { title, description, status, priority, dueDate, assignedTo } = data;
-
-    if (!taskId) {
-      return NextResponse.json({ error: "Missing taskId" }, { status: 400 });
-    }
 
     // Verify that the task exists
     const task = await Task.findById(taskId);
@@ -146,9 +133,6 @@ export async function PATCH(
     // Return the updated task
     return NextResponse.json(updatedTask, { status: 200 });
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : "An unknown error occurred",
-      status: 500,
-    });
+    handleServerError(err);
   }
 }
