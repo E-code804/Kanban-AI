@@ -14,3 +14,25 @@ export interface Task {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type TaskContextAction =
+  | {
+      type: "SET_TASKS";
+      payload: {
+        boardId: string;
+        tasks: Task[];
+      };
+    }
+  | {
+      type: "UPDATE_TASK";
+      payload: {
+        taskId: string;
+        updates: Partial<Task>;
+      };
+    }
+  | {
+      type: "DELETE_TASK";
+      payload: {
+        taskId: string;
+      };
+    };

@@ -130,7 +130,7 @@ export async function POST(
     };
     const newTaskResult = await Task.create(newTask);
 
-    return NextResponse.json({ taskId: newTaskResult._id }, { status: 201 });
+    return NextResponse.json({ task: newTaskResult }, { status: 201 });
   } catch (err) {
     return handleServerError(err);
   }
