@@ -3,6 +3,7 @@
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Task } from "@/types/Task/task";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import { Types } from "mongoose";
 import TaskBoardHeader from "./TaskBoardComponents/TaskBoardHeader";
 import TaskBoardStats from "./TaskBoardComponents/TaskBoardStats";
 import TaskColumn from "./TaskColumn";
@@ -11,6 +12,26 @@ type TaskStatus = "notStarted" | "inProgress" | "verification" | "finished";
 
 const TaskDisplay = () => {
   const { state, dispatch } = useTask();
+
+  const updateTaskStatus = async (taskId: Types.ObjectId, status: TaskStatus) => {
+    try {
+      const response = await fetch(`/api/kanban/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+        }),
+      });
+
+      if (!response.ok) {
+        console.log("Error updating task");
+      }
+    } catch (error) {
+      console.log(`Server error: ${error}`);
+    }
+  };
 
   // Column configurations
   const columns = [
@@ -109,7 +130,7 @@ const TaskDisplay = () => {
     return state.tasks.filter((task: Task) => task.status === status);
   };
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
     // If dropped outside a droppable area
@@ -134,15 +155,16 @@ const TaskDisplay = () => {
       return;
     }
 
+    const newStatus = destination.droppableId as TaskStatus;
+
     // Update task status if moved to different column
     if (destination.droppableId !== source.droppableId) {
       const updatedTask = {
         ...draggedTask,
-        status: destination.droppableId as TaskStatus,
+        status: newStatus,
       };
 
       // Dispatch action to update task status
-      // You'll need to implement this action in your context
       dispatch({
         type: "UPDATE_TASK",
         payload: {
@@ -151,8 +173,8 @@ const TaskDisplay = () => {
         },
       });
 
-      // Optional: Make API call to persist the change
-      // updateTaskStatus(draggedTask._id, destination.droppableId);
+      // Make API call to persist the change
+      await updateTaskStatus(draggedTask._id, newStatus);
     }
   };
 

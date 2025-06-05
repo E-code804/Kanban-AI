@@ -20,6 +20,7 @@ export type TaskContextAction =
       type: "SET_TASKS";
       payload: {
         boardId: string;
+        boardName: string;
         tasks: Task[];
       };
     }

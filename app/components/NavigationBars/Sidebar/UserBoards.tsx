@@ -1,7 +1,7 @@
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Board } from "@/types/board";
 import { Types } from "mongoose";
-import React from "react";
+import React, { useEffect } from "react";
 
 interface UserBoardsProps {
   loading: boolean;
@@ -9,11 +9,11 @@ interface UserBoardsProps {
 }
 
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
-  const { dispatch } = useTask();
+  const { state, dispatch } = useTask();
 
   // Sets the board ID and fetches tasks for that board.
   // Store in local storage the prev board ID and tasks so refreshing doesn't reset.s
-  const handleBoardClick = async (boardId: Types.ObjectId) => {
+  const handleBoardClick = async (boardId: Types.ObjectId, boardTitle: string) => {
     try {
       const boardIdStr = boardId.toString();
       const response = await fetch(`/api/kanban/boards/${boardId}/task`);
@@ -26,12 +26,16 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
       const json = await response.json();
       dispatch({
         type: "SET_TASKS",
-        payload: { boardId: boardIdStr, tasks: json.tasks },
+        payload: { boardId: boardIdStr, boardName: boardTitle, tasks: json.tasks },
       });
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
   };
+
+  useEffect(() => {
+    console.log(state.boardId);
+  }, [state.boardId]);
 
   return (
     <div className="p-6">
@@ -59,7 +63,7 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
           {boards.map((board) => (
             <div
               key={board._id.toString()}
-              onClick={() => handleBoardClick(board._id)}
+              onClick={() => handleBoardClick(board._id, board.title)}
               className="cursor-pointer block p-3 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-transparent hover:border-indigo-100 transition-all duration-200 group"
             >
               <div className="flex items-center">
