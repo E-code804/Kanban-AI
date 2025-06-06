@@ -37,3 +37,7 @@ export type TaskContextAction =
         taskId: string;
       };
     };
+
+export interface TaskParams {
+  taskId: string;
+}

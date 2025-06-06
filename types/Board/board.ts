@@ -8,3 +8,7 @@ export type Board = {
   createdBy: Types.ObjectId;
   createdAt: Date;
 };
+
+export interface BoardParams {
+  boardId: string;
+}

@@ -1,4 +1,4 @@
-import { Board } from "@/types/board";
+import { Board } from "@/types/Board/board";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Actions from "./Actions";

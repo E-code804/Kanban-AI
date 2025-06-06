@@ -3,6 +3,7 @@ import Task from "@/db/models/Task";
 import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
+import { BoardParams } from "@/types/Board/board";
 // import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
@@ -39,7 +40,7 @@ import { NextResponse } from "next/server";
  */
 export async function GET(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const { boardId } = await params;
@@ -110,7 +111,7 @@ export async function GET(
  */
 export async function DELETE(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const { boardId } = await params;
@@ -219,7 +220,7 @@ export async function DELETE(
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const { boardId } = await params;

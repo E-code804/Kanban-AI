@@ -3,7 +3,14 @@ import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { userId: string } }) {
+interface UserParams {
+  userId: string;
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<UserParams> }
+) {
   try {
     const { userId } = await params;
 

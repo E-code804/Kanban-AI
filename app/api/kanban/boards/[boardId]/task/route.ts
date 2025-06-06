@@ -3,6 +3,7 @@ import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { generateKanbanAdviceJson } from "@/lib/OpenAI";
+import { BoardParams } from "@/types/Board/board";
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 
@@ -42,7 +43,7 @@ import { NextResponse } from "next/server";
  */
 export async function GET(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const { boardId } = await params;
@@ -104,7 +105,7 @@ export async function GET(
  */
 export async function POST(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const { task } = await req.json();
@@ -201,7 +202,7 @@ export async function POST(
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { boardId: string } }
+  { params }: { params: Promise<BoardParams> }
 ) {
   try {
     const data = await req.json();

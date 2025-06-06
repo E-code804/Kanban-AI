@@ -1,5 +1,5 @@
 import { useTask } from "@/app/hooks/useTaskContext";
-import { Board } from "@/types/board";
+import { Board } from "@/types/Board/board";
 import { Types } from "mongoose";
 import React, { useEffect } from "react";
 

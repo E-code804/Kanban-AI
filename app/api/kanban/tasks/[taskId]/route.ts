@@ -3,6 +3,7 @@ import Task from "@/db/models/Task";
 import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
+import { TaskParams } from "@/types/Task/task";
 import { ObjectId, Types } from "mongoose";
 import { NextResponse } from "next/server";
 
@@ -32,7 +33,10 @@ import { NextResponse } from "next/server";
  *       status: 500
  *     }
  */
-export async function GET(req: Request, { params }: { params: { taskId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<TaskParams> }
+) {
   try {
     const { taskId } = await params;
 
@@ -123,7 +127,7 @@ export async function GET(req: Request, { params }: { params: { taskId: string }
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<TaskParams> }
 ) {
   try {
     const data = await req.json();
