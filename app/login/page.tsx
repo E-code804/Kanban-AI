@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Header from "../components/SignUpAndLogin/Header";
 import LoginForm from "../components/SignUpAndLogin/Login/LoginForm";
 import Terms from "../components/SignUpAndLogin/Terms";
@@ -9,7 +9,9 @@ const page = () => {
       <div className="w-full max-w-md">
         <Header isLogin={true} />
 
-        <LoginForm />
+        <Suspense fallback={<>Loading...</>}>
+          <LoginForm />
+        </Suspense>
 
         <Terms />
       </div>
