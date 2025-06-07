@@ -1,10 +1,11 @@
 "use client";
+import { useRedirectIfAuthenticated } from "@/app/hooks/useRedirectIfAuthenticated";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-// TODO: For here and signup, if session exists, redirect to home page
+// TODO: For here and signup, if session exists, redirect to home page.
 const LoginForm = () => {
   const router = useRouter();
   const params = useSearchParams();
@@ -14,6 +15,8 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useRedirectIfAuthenticated();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

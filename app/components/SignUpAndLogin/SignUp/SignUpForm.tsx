@@ -1,4 +1,5 @@
 "use client";
+import { useRedirectIfAuthenticated } from "@/app/hooks/useRedirectIfAuthenticated";
 import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,8 @@ const SignUpForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useRedirectIfAuthenticated();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
