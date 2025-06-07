@@ -9,6 +9,7 @@ interface TaskCardProps {
 
 const TaskCard = ({ task, index }: TaskCardProps) => {
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
+  const [viewMore, setViewMore] = useState<boolean>(false);
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case "High":
@@ -77,9 +78,23 @@ const TaskCard = ({ task, index }: TaskCardProps) => {
           </div>
 
           {task.description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-              {task.description}
-            </p>
+            <>
+              <p
+                className={`text-sm text-gray-600 mb-3 ${
+                  viewMore ? "" : "line-clamp-2"
+                }`}
+              >
+                {task.description}
+              </p>
+              {task.description.length > 120 && (
+                <p
+                  className="underline text-sm text-gray-600 mb-3"
+                  onClick={() => setViewMore((prevView) => !prevView)}
+                >
+                  {viewMore ? "View less" : "View more"}
+                </p>
+              )}
+            </>
           )}
 
           {/* Name & due date */}
