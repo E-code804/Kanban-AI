@@ -69,9 +69,6 @@ const TaskColumn = ({ title, tasks, status, color, icon }: TaskColumnProps) => {
                   <p className="text-sm text-center">
                     No tasks in {title.toLowerCase()}
                   </p>
-                  <button className="mt-2 text-xs text-indigo-600 hover:text-indigo-700 font-medium">
-                    Add a task
-                  </button>
                 </div>
                 {provided.placeholder}
               </>
