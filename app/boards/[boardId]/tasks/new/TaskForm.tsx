@@ -14,9 +14,9 @@ const TaskForm = () => {
   const [taskDescription, setTaskDescription] = useState<string>();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<MemberType[]>();
-  const [selectedMember, setSelectedMember] = useState<string>("");
+  const [selectedMember, setSelectedMember] = useState<string>(""); // Will be the member's ID.
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { dispatch } = useTask();
+  const { state, dispatch } = useTask();
 
   useEffect(() => {
     const getMembers = async () => {
@@ -55,21 +55,18 @@ const TaskForm = () => {
 
     if (!validateForm()) return;
 
-    console.log(taskDescription, selectedMember);
+    // console.log(taskDescription, selectedMember);
     try {
-      const prompt = `${taskDescription}. Assign to ${selectedMember}`;
-      const response = await fetch(
-        "/api/kanban/boards/684106955094cc7a5ee4e026/task",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            task: prompt,
-          }),
-        }
-      );
+      const response = await fetch(`/api/kanban/boards/${state.boardId}/task`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          task: taskDescription,
+          assigneeId: selectedMember,
+        }),
+      });
 
       if (!response.ok) {
         setErrors({ submit: "Something went wrong" });
@@ -78,7 +75,7 @@ const TaskForm = () => {
 
       const data = await response.json();
       const { task } = data;
-      // add a dispatch to add the new task.
+      // Ensuring frontend sees the new task
       dispatch({ type: "ADD_TASK", payload: { task } });
       router.push("/");
     } catch (error) {

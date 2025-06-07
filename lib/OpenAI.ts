@@ -45,7 +45,7 @@ Output ONLY valid JSON. For example:
   "assignedTo": "Jess",
   "priority": "High"
 }
-If any field cannot be inferred, set it to null or an empty array. 
+If any field cannot be inferred, set it to null or an empty array. DO NOT include the ID of the assigned user.
 Here is the task: ${task}, assign to user with ID: ${assigneeId}.
   `.trim();
 

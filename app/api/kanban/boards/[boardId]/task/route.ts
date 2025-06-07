@@ -108,21 +108,24 @@ export async function POST(
   { params }: { params: Promise<BoardParams> }
 ) {
   try {
-    const { task } = await req.json();
+    const { task, assigneeId } = await req.json();
     const { boardId } = await params;
     const userId = await getUserId(req);
 
     await connectDB();
 
-    if (!task) {
-      return NextResponse.json({ error: "Task are required." }, { status: 400 });
+    if (!task || !assigneeId) {
+      return NextResponse.json(
+        { error: "Task and assigneeId are required." },
+        { status: 400 }
+      );
     }
 
     // Might want check to ensure board exists.
 
     // advice gives title, description, labels, dueDate, assignedTo, priority
     // Make sure user can pick the member to assign task ot in frontend.
-    const advice = await generateKanbanAdviceJson(task, "683ef50c1860ee8c1cc1b37a");
+    const advice = await generateKanbanAdviceJson(task, assigneeId);
 
     const newTask = {
       boardId,
