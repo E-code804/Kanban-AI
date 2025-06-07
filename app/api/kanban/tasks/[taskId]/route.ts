@@ -54,6 +54,54 @@ export async function GET(
 }
 
 /**
+ * Delete a task by its ID.
+ *
+ * @param req     - A Request object (no body required for DELETE).
+ * @param params  - An object containing:
+ *   - taskId: string (the ID of the task to delete)
+ *
+ * @returns NextResponse containing a JSON object. Possible responses:
+ *   • 200 OK:
+ *     {
+ *       message: "Task deleted successfully"
+ *     }
+ *     – Task was successfully deleted.
+ *
+ *   • 404 Not Found (no task with the given ID exists):
+ *     {
+ *       error: "Task not found."
+ *     }
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<TaskParams> }
+) {
+  try {
+    const { taskId } = await params;
+
+    await connectDB();
+
+    const deletedTask = await Task.findByIdAndDelete(taskId);
+    if (!deletedTask) {
+      return NextResponse.json({ error: "Task not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { message: "Task deleted successfully" },
+      { status: 200 }
+    );
+  } catch (err) {
+    return handleServerError(err);
+  }
+}
+
+/**
  * Update specified fields of an existing task, ensuring only the task creator or board creator may edit.
  *
  * @param req     - A Request object whose JSON body may include:

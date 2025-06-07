@@ -40,9 +40,10 @@ export const taskReducer = (state: TaskContextState, action: TaskContextAction) 
     case "DELETE_TASK": {
       // User wants to delete a task. MUST DECIDE IF USER IS ALLOWED TO DELETE.
       const { taskId } = action.payload;
+      console.log("Deleting task:", taskId);
       return {
         ...state,
-        task: state.tasks.filter((task: Task) => task._id.toString() !== taskId),
+        tasks: state.tasks.filter((task: Task) => task._id.toString() !== taskId),
       };
     }
     default:
