@@ -42,7 +42,7 @@ const TaskCard = ({ task, index }: TaskCardProps) => {
         setAssigneeName(null);
       });
   }, [task.assignedTo]);
-  // TODO: make them deletable, editable, and view all text
+  // TODO: make them deletable, editable.
   return (
     <Draggable draggableId={task._id.toString()} index={index}>
       {(provided, snapshot) => (

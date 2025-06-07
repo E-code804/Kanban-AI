@@ -3,7 +3,7 @@ import React from "react";
 const NavLinks = () => {
   return (
     <div className="border-t border-gray-100 p-6">
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+      {/* <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
         Navigation
       </h3>
       <nav className="space-y-1">
@@ -76,7 +76,7 @@ const NavLinks = () => {
           </svg>
           Settings
         </a>
-      </nav>
+      </nav> */}
     </div>
   );
 };

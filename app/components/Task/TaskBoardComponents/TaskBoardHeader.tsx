@@ -10,20 +10,20 @@ const TaskBoardHeader = () => {
     router.push(`/boards/${state.boardId}/tasks/new`);
   };
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+      <div className="flex-1">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
           Kanban Board {state.boardName ? `- ${state.boardName}` : ""}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Manage your tasks across different stages of completion
         </p>
       </div>
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-center sm:justify-end">
         {state.boardId ? (
           <button
             onClick={handleAddTaskClick}
-            className="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center font-medium shadow-sm"
+            className="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center font-medium shadow-sm text-sm sm:text-base w-full sm:w-auto justify-center"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -41,7 +41,7 @@ const TaskBoardHeader = () => {
             Add Task
           </button>
         ) : (
-          <h1>Please select a board</h1>
+          <h1 className="text-sm sm:text-base text-center">Please select a board</h1>
         )}
       </div>
     </div>

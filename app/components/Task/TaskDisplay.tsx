@@ -190,17 +190,19 @@ const TaskDisplay = () => {
 
       {/* Kanban Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 overflow-x-auto pb-6">
-          {columns.map((column) => (
-            <TaskColumn
-              key={column.status}
-              title={column.title}
-              tasks={getTasksByStatus(column.status)}
-              status={column.status}
-              color={column.color}
-              icon={column.icon}
-            />
-          ))}
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 xl:flex xl:gap-6 xl:overflow-x-auto pb-6 max-w-full">
+            {columns.map((column) => (
+              <TaskColumn
+                key={column.status}
+                title={column.title}
+                tasks={getTasksByStatus(column.status)}
+                status={column.status}
+                color={column.color}
+                icon={column.icon}
+              />
+            ))}
+          </div>
         </div>
       </DragDropContext>
     </div>
