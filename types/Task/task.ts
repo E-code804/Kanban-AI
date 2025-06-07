@@ -15,6 +15,12 @@ export interface Task {
   updatedAt: Date;
 }
 
+export interface TaskContextState {
+  boardId: string;
+  boardName: string;
+  tasks: Task[];
+}
+
 export type TaskContextAction =
   | {
       type: "SET_TASKS";
@@ -35,6 +41,12 @@ export type TaskContextAction =
       type: "DELETE_TASK";
       payload: {
         taskId: string;
+      };
+    }
+  | {
+      type: "ADD_TASK";
+      payload: {
+        task: Task;
       };
     };
 

@@ -1,12 +1,6 @@
 "use client";
-import { Task, TaskContextAction } from "@/types/Task/task";
+import { Task, TaskContextAction, TaskContextState } from "@/types/Task/task";
 import { createContext, ReactNode, useReducer } from "react";
-
-interface TaskContextState {
-  boardId: string;
-  boardName: string;
-  tasks: Task[];
-}
 
 const initialState: TaskContextState = {
   boardId: "",
@@ -27,6 +21,11 @@ export const taskReducer = (state: TaskContextState, action: TaskContextAction) 
       // User clicks on a board from sidebar and updates the boardID & tasks.
       const { boardId, boardName, tasks } = action.payload;
       return { boardId, boardName, tasks };
+    }
+    case "ADD_TASK": {
+      const { task } = action.payload;
+      // May want to sort task
+      return { ...state, tasks: [...state.tasks, task] };
     }
     case "UPDATE_TASK": {
       // User makes some sort of update on task.  MUST DECIDE IF USER IS ALLOWED TO MODIFY.

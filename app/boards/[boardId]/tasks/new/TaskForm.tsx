@@ -1,4 +1,4 @@
-// import { useTask } from "@/app/hooks/useTaskContext";
+import { useTask } from "@/app/hooks/useTaskContext";
 import { Loader2 } from "lucide-react";
 import { Types } from "mongoose";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,7 @@ const TaskForm = () => {
   const [members, setMembers] = useState<MemberType[]>();
   const [selectedMember, setSelectedMember] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // const { state } = useTask();
+  const { dispatch } = useTask();
 
   useEffect(() => {
     const getMembers = async () => {
@@ -76,6 +76,10 @@ const TaskForm = () => {
         return;
       }
 
+      const data = await response.json();
+      const { task } = data;
+      // add a dispatch to add the new task.
+      dispatch({ type: "ADD_TASK", payload: { task } });
       router.push("/");
     } catch (error) {
       setErrors({ submit: `Network error. Please try again. ${error}` });
