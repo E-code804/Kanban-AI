@@ -7,20 +7,6 @@ import { BoardParams } from "@/types/Board/board";
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 
-// export interface ITask extends Document {
-//   boardId: Types.ObjectId;
-//   title: string;
-//   description?: string;
-//   labels: string[];
-//   status: "notStarted" | "inProgress" | "verification" | "finished";
-//   priority: "Low" | "Medium" | "High";
-//   dueDate?: Date;
-//   createdBy: Types.ObjectId;
-//   assignedTo?: Types.ObjectId;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
-
 /**
  * Retrieve all tasks for a specific board.
  *
@@ -34,7 +20,10 @@ import { NextResponse } from "next/server";
  *       tasks: Task[]
  *     }
  *     – An array of task objects belonging to the specified board.
- *
+ *  • 404 Not Found:
+ *     {
+ *       message: "Could not retrieve tasks for the selected board.",
+ *     }
  *   • 500 Internal Server Error (unexpected exception):
  *     {
  *       error: "<Error message or generic fallback>",
@@ -53,6 +42,13 @@ export async function GET(
     // Make sure board is valid on only members can get the tasks.
 
     const tasks = await Task.find({ boardId }).sort({ dueDate: 1 });
+    if (!tasks) {
+      return NextResponse.json(
+        { message: "Could not retrieve tasks for the selected board." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ tasks }, { status: 200 });
   } catch (err) {
     return handleServerError(err);

@@ -4,14 +4,6 @@ import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-// const BoardSchema = new Schema<IBoard>({
-//   title: { type: String, required: true },
-//   description: { type: String },
-//   members: [{ type: Schema.Types.ObjectId, ref: "User" }],
-//   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-//   createdAt: { type: Date, default: Date.now },
-// });
-
 /**
  * Retrieve all boards that the authenticated user belongs to.
  *
@@ -24,6 +16,10 @@ import { NextResponse } from "next/server";
  *       boards: Board[]
  *     }
  *     – An array of board documents where the user is a member.
+ *  • 404 Not Found:
+ *     {
+ *       message: "Could not retrieve boards for user.",
+ *     }
  *
  *   • 500 Internal Server Error (unexpected exception):
  *     {
@@ -38,6 +34,13 @@ export async function GET(req: Request) {
     await connectDB();
 
     const boards = await Board.find({ members: userId });
+
+    if (!boards) {
+      return NextResponse.json(
+        { message: "Could not retrieve boards for user." },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Successfully retrieved boards for user.", boards },

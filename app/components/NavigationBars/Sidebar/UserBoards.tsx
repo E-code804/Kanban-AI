@@ -1,10 +1,12 @@
+import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { UserBoardsProps } from "@/types/Board/board";
 import { Types } from "mongoose";
-import { useEffect } from "react";
 
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
-  const { state, dispatch } = useTask();
+  const { dispatch: taskDispatch } = useTask();
+  const { dispatch: errorDispatch } = useError();
+  const errorName = "fetchTaskError"; // Used in conjuction with TaskDisplay.
 
   // Sets the board ID and fetches tasks for that board.
   // Store in local storage the prev board ID and tasks so refreshing doesn't reset.s
@@ -12,25 +14,39 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
     try {
       const boardIdStr = boardId.toString();
       const response = await fetch(`/api/kanban/boards/${boardId}/task`);
+      const json = await response.json();
 
       if (!response.ok) {
         console.log("An error occurred fetching boards.");
+        errorDispatch({
+          type: "SET_ERRORS",
+          payload: {
+            errorName,
+            errorMessage:
+              json.message || "Failed to fetch tasks for selected board.",
+          },
+        });
         return;
       }
 
-      const json = await response.json();
-      dispatch({
+      taskDispatch({
         type: "SET_TASKS",
         payload: { boardId: boardIdStr, boardName: boardTitle, tasks: json.tasks },
       });
+      errorDispatch({ type: "RESET_ERRORS" });
     } catch (error) {
       console.error("Error fetching tasks:", error);
+
+      errorDispatch({
+        type: "SET_ERRORS",
+        payload: {
+          errorName,
+          errorMessage:
+            error instanceof Error ? error.message : "An unexpected error occurred",
+        },
+      });
     }
   };
-
-  useEffect(() => {
-    console.log(state.boardId);
-  }, [state.boardId]);
 
   return (
     <div className="p-6">

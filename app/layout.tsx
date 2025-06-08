@@ -1,7 +1,8 @@
 "use client";
 import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { TaskContextProvider } from "./context/TaskContext";
+// import { TaskContextProvider } from "./context/TaskContext";
+import { Providers } from "@/lib/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,9 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <TaskContextProvider>
+        <Providers>
           <SessionProvider>{children}</SessionProvider>
-        </TaskContextProvider>
+        </Providers>
       </body>
     </html>
   );

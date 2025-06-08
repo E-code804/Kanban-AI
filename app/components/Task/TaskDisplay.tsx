@@ -1,15 +1,20 @@
 // components/TaskDisplay.tsx
 "use client";
+import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Task, TaskStatus } from "@/types/Task/task";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Types } from "mongoose";
+import ErrorMessage from "../ErrorMessage";
 import TaskBoardHeader from "./TaskBoardComponents/TaskBoardHeader";
 import TaskBoardStats from "./TaskBoardComponents/TaskBoardStats";
 import TaskColumn from "./TaskColumn";
 
 const TaskDisplay = () => {
-  const { state, dispatch } = useTask();
+  const { state: taskState, dispatch: taskDispatch } = useTask();
+  const { state: errorState, dispatch: errorDispatch } = useError();
+  const fetchTaskError = "fetchTaskError"; // Used in conjuction with UserBoards.
+  const updateTaskError = "updateTaskError";
 
   const updateTaskStatus = async (taskId: Types.ObjectId, status: TaskStatus) => {
     try {
@@ -23,11 +28,31 @@ const TaskDisplay = () => {
         }),
       });
 
+      const json = await response.json();
+
       if (!response.ok) {
         console.log("Error updating task");
+        errorDispatch({
+          type: "SET_ERRORS",
+          payload: {
+            errorName: updateTaskError,
+            errorMessage: json.error || `Failed to update task (${response.status})`,
+          },
+        });
+        return;
       }
+
+      errorDispatch({ type: "RESET_ERRORS" });
     } catch (error) {
       console.log(`Server error: ${error}`);
+      errorDispatch({
+        type: "SET_ERRORS",
+        payload: {
+          errorName: updateTaskError,
+          errorMessage:
+            error instanceof Error ? error.message : "An unexpected error occurred",
+        },
+      });
     }
   };
 
@@ -125,7 +150,7 @@ const TaskDisplay = () => {
   ];
 
   const getTasksByStatus = (status: string): Task[] => {
-    return state.tasks.filter((task: Task) => task.status === status);
+    return taskState.tasks.filter((task: Task) => task.status === status);
   };
 
   const handleDragEnd = async (result: DropResult) => {
@@ -145,7 +170,7 @@ const TaskDisplay = () => {
     }
 
     // Find the task being moved
-    const draggedTask = state.tasks.find(
+    const draggedTask = taskState.tasks.find(
       (task: Task) => task._id.toString() === draggableId
     );
 
@@ -163,7 +188,7 @@ const TaskDisplay = () => {
       };
 
       // Dispatch action to update task status
-      dispatch({
+      taskDispatch({
         type: "UPDATE_TASK",
         payload: {
           taskId: draggedTask._id.toString(),
@@ -178,31 +203,47 @@ const TaskDisplay = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-8">
-        {/* Header, has title and add task button. */}
-        <TaskBoardHeader />
+      {errorState.errors[fetchTaskError] ? (
+        <ErrorMessage
+          title="Error Loading Board and its tasks."
+          errorMessage={errorState.errors[fetchTaskError]}
+        />
+      ) : (
+        <>
+          <div className="mb-8">
+            {/* Header, has title and add task button. */}
+            <TaskBoardHeader />
 
-        {/* Stats */}
-        <TaskBoardStats columns={columns} getTasksByStatus={getTasksByStatus} />
-      </div>
-
-      {/* Kanban Columns */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 xl:flex xl:gap-6 xl:overflow-x-auto pb-6 max-w-full">
-            {columns.map((column) => (
-              <TaskColumn
-                key={column.status}
-                title={column.title}
-                tasks={getTasksByStatus(column.status)}
-                status={column.status}
-                color={column.color}
-                icon={column.icon}
-              />
-            ))}
+            {/* Stats */}
+            <TaskBoardStats columns={columns} getTasksByStatus={getTasksByStatus} />
           </div>
-        </div>
-      </DragDropContext>
+
+          {errorState.errors[updateTaskError] && (
+            <ErrorMessage
+              title="Error Updating Task Status"
+              errorMessage={errorState.errors[updateTaskError]}
+            />
+          )}
+
+          {/* Kanban Columns */}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="flex justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 xl:flex xl:gap-6 xl:overflow-x-auto pb-6 max-w-full">
+                {columns.map((column) => (
+                  <TaskColumn
+                    key={column.status}
+                    title={column.title}
+                    tasks={getTasksByStatus(column.status)}
+                    status={column.status}
+                    color={column.color}
+                    icon={column.icon}
+                  />
+                ))}
+              </div>
+            </div>
+          </DragDropContext>
+        </>
+      )}
     </div>
   );
 };

@@ -1,10 +1,16 @@
+import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { MemberType, TaskEditFormProps, UpdatedTask } from "@/types/Task/task";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import ErrorMessage from "../ErrorMessage";
 
 const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
-  const { state, dispatch } = useTask();
+  const { state: taskState, dispatch: taskDispatch } = useTask();
+  const { state: errorState, dispatch: errorDispatch } = useError();
+  const fetchMembersError = "fetchMembersError";
+  const deleteError = "deleteError";
+  const updateError = "updateError";
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<MemberType[]>();
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
@@ -21,25 +27,44 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
   useEffect(() => {
     const getMembers = async () => {
       try {
-        const response = await fetch(`/api/kanban/boards/${state.boardId}`);
+        const response = await fetch(`/api/kanban/boards/${taskState.boardId}`);
+        const json = await response.json();
+
         if (!response.ok) {
           console.error("Failed to fetch board members");
+          errorDispatch({
+            type: "SET_ERRORS",
+            payload: {
+              errorName: fetchMembersError,
+              errorMessage:
+                json.error ||
+                json.message ||
+                `Failed to fetch board members (${response.status})`,
+            },
+          });
           return;
         }
-        const data = await response.json();
-        // console.log(state.boardId, data);
 
-        setMembers(data.board.members);
-      } catch (err) {
-        console.error("Error fetching members:", err);
+        // Success - clear errors and set members
+        errorDispatch({ type: "RESET_ERRORS" });
+        setMembers(json.board.members);
+      } catch (error) {
+        console.error("Error fetching members:", error);
+        errorDispatch({
+          type: "SET_ERRORS",
+          payload: {
+            errorName: fetchMembersError,
+            errorMessage:
+              error instanceof Error
+                ? error.message
+                : "An unexpected error occurred",
+          },
+        });
       }
     };
 
-    // if (state.boardId) {
-    //   getMembers();
-    // }
     getMembers();
-  }, [state.boardId]);
+  }, [errorDispatch, taskState.boardId]);
 
   const validateForm = (updatedTask: UpdatedTask) => {
     const newErrors: Record<string, string> = {};
@@ -71,15 +96,40 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
         method: "DELETE",
       });
 
+      const json = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to delete task");
+        console.error("Failed to delete task");
+        errorDispatch({
+          type: "SET_ERRORS",
+          payload: {
+            errorName: deleteError,
+            errorMessage:
+              json.error ||
+              json.message ||
+              `Failed to delete task (${response.status})`,
+          },
+        });
+        return;
       }
 
-      dispatch({ type: "DELETE_TASK", payload: { taskId: task._id.toString() } });
+      // Success - clear errors and update state
+      errorDispatch({ type: "RESET_ERRORS" });
+      taskDispatch({
+        type: "DELETE_TASK",
+        payload: { taskId: task._id.toString() },
+      });
       setToggleTaskForm(false);
     } catch (error) {
       console.error("Error deleting task:", error);
-      // Optional: Add error handling/notification here
+      errorDispatch({
+        type: "SET_ERRORS",
+        payload: {
+          errorName: deleteError,
+          errorMessage:
+            error instanceof Error ? error.message : "An unexpected error occurred",
+        },
+      });
     } finally {
       setIsLoadingDelete(false);
     }
@@ -105,18 +155,40 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
         body: JSON.stringify({ ...updatedTask }),
       });
 
+      const json = await response.json();
+
       if (!response.ok) {
         console.log("Error updating task");
+        errorDispatch({
+          type: "SET_ERRORS",
+          payload: {
+            errorName: updateError,
+            errorMessage:
+              json.error ||
+              json.message ||
+              `Failed to update task (${response.status})`,
+          },
+        });
         return;
       }
 
-      dispatch({
+      // Success - clear errors and update state
+      errorDispatch({ type: "RESET_ERRORS" });
+      taskDispatch({
         type: "UPDATE_TASK",
         payload: { taskId: task._id.toString(), updates: updatedTask },
       });
       setToggleTaskForm(false);
     } catch (error) {
       console.log(error);
+      errorDispatch({
+        type: "SET_ERRORS",
+        payload: {
+          errorName: updateError,
+          errorMessage:
+            error instanceof Error ? error.message : "An unexpected error occurred",
+        },
+      });
     } finally {
       setIsLoadingSubmit(false);
     }
@@ -258,38 +330,48 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
           </div>
 
           {/* Assign to */}
-          <div>
-            <label
-              htmlFor="assignedTo"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Assign to:
-            </label>
-            <select
-              id="assignedTo"
-              name="assignedTo"
-              value={formData.assignedTo?.toString() || ""}
-              onChange={handleInputChange}
-              className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
-                errors.member
-                  ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300"
-              }`}
-            >
-              <option value="" disabled>
-                -- Select a member --
-              </option>
-              {members &&
-                members.map((member: MemberType) => (
-                  <option key={member._id.toString()} value={member._id.toString()}>
-                    {member.name}
-                  </option>
-                ))}
-            </select>
-            {errors.member && (
-              <p className="mt-1 text-sm text-red-600">{errors.member}</p>
-            )}
-          </div>
+          {errorState.errors[fetchMembersError] ? (
+            <ErrorMessage
+              title="Error fetching the members of this board."
+              errorMessage={errorState.errors[fetchMembersError]}
+            />
+          ) : (
+            <div>
+              <label
+                htmlFor="assignedTo"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Assign to:
+              </label>
+              <select
+                id="assignedTo"
+                name="assignedTo"
+                value={formData.assignedTo?.toString() || ""}
+                onChange={handleInputChange}
+                className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+                  errors.member
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="" disabled>
+                  -- Select a member --
+                </option>
+                {members &&
+                  members.map((member: MemberType) => (
+                    <option
+                      key={member._id.toString()}
+                      value={member._id.toString()}
+                    >
+                      {member.name}
+                    </option>
+                  ))}
+              </select>
+              {errors.member && (
+                <p className="mt-1 text-sm text-red-600">{errors.member}</p>
+              )}
+            </div>
+          )}
 
           {/* Due Date */}
           <div>
@@ -315,6 +397,19 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
           )}
 
           {/* Action Buttons */}
+          {errorState.errors[deleteError] && (
+            <ErrorMessage
+              title="Error deleting task."
+              errorMessage={errorState.errors[deleteError]}
+            />
+          )}
+          {errorState.errors[updateError] && (
+            <ErrorMessage
+              title="Error updating task."
+              errorMessage={errorState.errors[updateError]}
+            />
+          )}
+
           <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"
