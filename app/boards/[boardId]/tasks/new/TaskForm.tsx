@@ -37,7 +37,7 @@ const TaskForm = () => {
     //   getMembers();
     // }
     getMembers();
-  }, []);
+  }, [state.boardId]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

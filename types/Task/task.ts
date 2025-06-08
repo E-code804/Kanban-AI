@@ -48,6 +48,12 @@ export type TaskContextAction =
       payload: {
         task: Task;
       };
+    }
+  | {
+      type: "UPDATE_BOARD_ID";
+      payload: {
+        boardId: string;
+      };
     };
 
 export interface TaskParams {

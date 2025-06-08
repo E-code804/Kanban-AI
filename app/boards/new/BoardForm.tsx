@@ -1,3 +1,4 @@
+import { useTask } from "@/app/hooks/useTaskContext";
 import { AlertCircle, CheckCircle, Loader2, Plus } from "lucide-react";
 import React, { useState } from "react";
 
@@ -8,6 +9,7 @@ export default function BoardForm() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", content: "" });
+  const { dispatch } = useTask();
 
   // Ensure unlogged in users cannot reach here.
 
@@ -49,6 +51,12 @@ export default function BoardForm() {
           content: data.message || "Failed to create board",
         });
       }
+
+      dispatch({
+        type: "UPDATE_BOARD_ID",
+        payload: { boardId: data.boardId.toString() },
+      });
+      window.location.href = "/";
     } catch (error) {
       setMessage({
         type: "error",
@@ -132,7 +140,7 @@ export default function BoardForm() {
             <button
               type="submit"
               disabled={!isFormValid || isLoading}
-              className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+              className="cursor-pointer w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
             >
               {isLoading ? (
                 <>

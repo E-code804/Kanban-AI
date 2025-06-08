@@ -15,7 +15,7 @@ const Actions = () => {
       {/* Create board btn */}
       <button
         onClick={handleCreateBoard}
-        className="w-full flex items-center justify-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-sm mb-2"
+        className="cursor-pointer w-full flex items-center justify-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-sm mb-2"
       >
         <svg
           className="w-4 h-4 mr-2"

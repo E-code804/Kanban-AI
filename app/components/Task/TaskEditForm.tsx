@@ -58,7 +58,7 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
     //   getMembers();
     // }
     getMembers();
-  }, []);
+  }, [state.boardId]);
 
   const validateForm = (updatedTask: UpdatedTask) => {
     const newErrors: Record<string, string> = {};

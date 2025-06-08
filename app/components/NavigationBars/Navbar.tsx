@@ -43,14 +43,16 @@ export default function Navbar() {
         </button>
 
         {/* Center - Logo */}
-        <div className="flex items-center">
-          <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg mr-2">
-            <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-sm"></div>
+        <Link href={"/"} className="cursor-pointer">
+          <div className="flex items-center">
+            <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg mr-2">
+              <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
+                <div className="w-2 h-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-sm"></div>
+              </div>
             </div>
+            <span className="font-bold text-gray-900 text-lg">Kanban AI</span>
           </div>
-          <span className="font-bold text-gray-900 text-lg">Kanban AI</span>
-        </div>
+        </Link>
 
         {/* Right side - Auth */}
         {session ? (

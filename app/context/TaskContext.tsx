@@ -46,6 +46,10 @@ export const taskReducer = (state: TaskContextState, action: TaskContextAction) 
         tasks: state.tasks.filter((task: Task) => task._id.toString() !== taskId),
       };
     }
+    case "UPDATE_BOARD_ID": {
+      const { boardId } = action.payload;
+      return { ...state, boardId };
+    }
     default:
       return state;
   }
