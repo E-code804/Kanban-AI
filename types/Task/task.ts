@@ -16,6 +16,7 @@ export interface Task {
   updatedAt: Date;
 }
 
+// Used in TaskContext.tsx
 export interface TaskContextState {
   boardId: string;
   boardName: string;

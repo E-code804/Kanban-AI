@@ -1,15 +1,8 @@
 import Board from "@/db/models/Board";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
+import { UserParams } from "@/types/User/user";
 import { NextResponse } from "next/server";
-
-// const BoardSchema = new Schema<IBoard>({
-//   title: { type: String, required: true },
-//   description: { type: String },
-//   members: [{ type: Schema.Types.ObjectId, ref: "User" }],
-//   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-//   createdAt: { type: Date, default: Date.now },
-// });
 
 /**
  * Retrieve all boards where the specified userId is NOT a member.
@@ -36,11 +29,6 @@ import { NextResponse } from "next/server";
  *       status: 500
  *     }
  */
-
-interface UserParams {
-  userId: string;
-}
-
 export async function GET(
   req: Request,
   { params }: { params: Promise<UserParams> }

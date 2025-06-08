@@ -1,12 +1,36 @@
 import User from "@/db/models/User";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
+import { UserParams } from "@/types/User/user";
 import { NextResponse } from "next/server";
 
-interface UserParams {
-  userId: string;
-}
-
+/**
+ * Retrieve a specific user by ID.
+ *
+ * @param req     - A Request object (no body required for GET).
+ * @param params  - An object containing:
+ *   - userId: string (the ID of the user being requested)
+ *
+ * @returns NextResponse containing a JSON object with:
+ *   • 200 OK:
+ *     {
+ *       message: "User found",
+ *       user: User
+ *     }
+ *     – A success message and the user object with the specified ID.
+ *
+ *   • 404 Not Found:
+ *     {
+ *       error: "User not found."
+ *     }
+ *     – When no user exists with the provided ID.
+ *
+ *   • 500 Internal Server Error (unexpected exception):
+ *     {
+ *       error: "<Error message or generic fallback>",
+ *       status: 500
+ *     }
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<UserParams> }

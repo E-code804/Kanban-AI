@@ -4,7 +4,6 @@ import { getUserId } from "@/lib/apiAuth";
 import { handleServerError } from "@/lib/errorHandler";
 import { connectDB } from "@/lib/mongodb";
 import { BoardParams } from "@/types/Board/board";
-// import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 /**

@@ -12,24 +12,24 @@ export type Board = {
 export interface BoardParams {
   boardId: string;
 }
+// Used in BoardContext.tsx (DNE at this moment)
+// export interface BoardContextState {
+//   selectedBoardId: string;
+//   boardName: string;
+//   boards: Board[];
+// }
 
-export interface BoardContextState {
-  selectedBoardId: string;
-  boardName: string;
-  boards: Board[];
-}
-
-export type BoardContextAction =
-  | {
-      type: "SET_BOARDS";
-      payload: {
-        boards: Board[];
-      };
-    }
-  | {
-      type: "SET_BOARD_INFO";
-      payload: { selectedBoardId: string; boardName: string };
-    };
+// export type BoardContextAction =
+//   | {
+//       type: "SET_BOARDS";
+//       payload: {
+//         boards: Board[];
+//       };
+//     }
+//   | {
+//       type: "SET_BOARD_INFO";
+//       payload: { selectedBoardId: string; boardName: string };
+//     };
 
 // Used in UserBoards.tsx
 export interface UserBoardsProps {
