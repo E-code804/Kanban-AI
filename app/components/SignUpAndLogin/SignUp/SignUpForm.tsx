@@ -1,9 +1,13 @@
 "use client";
 import { useRedirectIfAuthenticated } from "@/app/hooks/useRedirectIfAuthenticated";
 import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  getPasswordStrength,
+  handleSignUpSubmit,
+  validateSignUpForm,
+} from "./signUpService";
 
 const SignUpForm = () => {
   const router = useRouter();
@@ -15,43 +19,13 @@ const SignUpForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const passwordStrength = getPasswordStrength(password);
 
   useRedirectIfAuthenticated();
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Name validation
-    if (!name.trim()) {
-      newErrors.name = "Name is required";
-    } else if (name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      newErrors.password = "Password must contain uppercase, lowercase, and number";
-    }
-
-    // Confirm password validation
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
+    const formData = { name, email, password, confirmPassword };
+    const newErrors = validateSignUpForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,73 +35,13 @@ const SignUpForm = () => {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.toLowerCase().trim(),
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const signInRes = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-          callback: "/",
-        });
-
-        if (signInRes?.error) {
-          setErrors({ submit: signInRes.error || "Something went wrong" });
-        }
-
-        router.push("/");
-      } else {
-        setErrors({ submit: data.message || "Something went wrong" });
-      }
-    } catch (error) {
-      setErrors({ submit: `Network error. Please try again. ${error}` });
-    } finally {
-      setIsLoading(false);
-    }
+    await handleSignUpSubmit({
+      formData: { name, email, password, confirmPassword },
+      router,
+      setIsLoading,
+      setErrors,
+    });
   };
-  // TestSignup20@
-  const getPasswordStrength = () => {
-    if (!password) return { strength: 0, text: "" };
-
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[^a-zA-Z\d]/.test(password)) strength++;
-
-    const levels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
-    const colors = [
-      "bg-red-500",
-      "bg-orange-500",
-      "bg-yellow-500",
-      "bg-blue-500",
-      "bg-green-500",
-    ];
-
-    return {
-      strength,
-      text: levels[strength - 1] || "",
-      color: colors[strength - 1] || "bg-gray-300",
-    };
-  };
-
-  const passwordStrength = getPasswordStrength();
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-gray-700">
       <form onSubmit={handleSubmit} className="space-y-6">

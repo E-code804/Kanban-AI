@@ -1,7 +1,7 @@
 import Board from "@/db/models/Board";
-import { getUserId } from "@/lib/apiAuth";
-import { handleServerError } from "@/lib/errorHandler";
-import { connectDB } from "@/lib/mongodb";
+import { getUserId } from "@/lib/Backend/apiAuth";
+import { handleServerError } from "@/lib/Backend/errorHandler";
+import { connectDB } from "@/lib/Backend/mongodb";
 import { NextResponse } from "next/server";
 
 /**

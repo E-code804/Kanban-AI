@@ -13,3 +13,9 @@ export type ErrorContextAction =
 export interface ErrorContextState {
   errors: Record<string, string>;
 }
+
+// Used in ErrorMessage.tsx
+export interface ErrorMessageProps {
+  title: string;
+  errorMessage: string;
+}

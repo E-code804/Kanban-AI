@@ -1,4 +1,4 @@
-import { connectDB } from "@/lib/mongodb";
+import { connectDB } from "@/lib/Backend/mongodb";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { compare } from "bcryptjs";
 import { MongoClient } from "mongodb";

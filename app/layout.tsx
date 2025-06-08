@@ -2,7 +2,7 @@
 import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono } from "next/font/google";
 // import { TaskContextProvider } from "./context/TaskContext";
-import { Providers } from "@/lib/providers";
+import { Providers } from "@/lib/Frontend/providers";
 import "./globals.css";
 
 const geistSans = Geist({

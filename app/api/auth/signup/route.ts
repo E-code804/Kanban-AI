@@ -1,6 +1,6 @@
 import User from "@/db/models/User";
-import { handleServerError } from "@/lib/errorHandler";
-import { connectDB } from "@/lib/mongodb";
+import { handleServerError } from "@/lib/Backend/errorHandler";
+import { connectDB } from "@/lib/Backend/mongodb";
 import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 

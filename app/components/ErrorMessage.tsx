@@ -1,9 +1,4 @@
-import React from "react";
-
-interface ErrorMessageProps {
-  title: string;
-  errorMessage: string;
-}
+import { ErrorMessageProps } from "@/types/Error/error";
 
 const ErrorMessage = ({ title, errorMessage }: ErrorMessageProps) => {
   return (

@@ -1,8 +1,8 @@
 import Task from "@/db/models/Task";
-import { getUserId } from "@/lib/apiAuth";
-import { handleServerError } from "@/lib/errorHandler";
-import { connectDB } from "@/lib/mongodb";
-import { generateKanbanAdviceJson } from "@/lib/OpenAI";
+import { getUserId } from "@/lib/Backend/apiAuth";
+import { handleServerError } from "@/lib/Backend/errorHandler";
+import { connectDB } from "@/lib/Backend/mongodb";
+import { generateKanbanAdviceJson } from "@/lib/Backend/OpenAI";
 import { BoardParams } from "@/types/Board/board";
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";

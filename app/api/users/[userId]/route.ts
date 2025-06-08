@@ -1,6 +1,6 @@
 import User from "@/db/models/User";
-import { handleServerError } from "@/lib/errorHandler";
-import { connectDB } from "@/lib/mongodb";
+import { handleServerError } from "@/lib/Backend/errorHandler";
+import { connectDB } from "@/lib/Backend/mongodb";
 import { UserParams } from "@/types/User/user";
 import { NextResponse } from "next/server";
 

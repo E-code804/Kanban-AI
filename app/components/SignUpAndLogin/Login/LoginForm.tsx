@@ -1,9 +1,9 @@
 "use client";
 import { useRedirectIfAuthenticated } from "@/app/hooks/useRedirectIfAuthenticated";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { handleLoginSubmit, validateLoginForm } from "./loginService";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -18,21 +18,8 @@ const LoginForm = () => {
   useRedirectIfAuthenticated();
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Please enter your password";
-    }
-
+    const formData = { email, password };
+    const newErrors = validateLoginForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -42,20 +29,13 @@ const LoginForm = () => {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
+    await handleLoginSubmit({
+      formData: { email, password },
       callbackUrl,
+      router,
+      setIsLoading,
+      setErrors,
     });
-    setIsLoading(false);
-
-    if (res?.error) {
-      setErrors({ submit: res.error || "Something went wrong" });
-    } else {
-      router.push("/");
-    }
   };
 
   return (

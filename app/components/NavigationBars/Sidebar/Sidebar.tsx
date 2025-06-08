@@ -1,5 +1,6 @@
 import ErrorMessage from "@/app/components/ErrorMessage";
 import { useError } from "@/app/hooks/useErrorContext";
+// import { setErrors } from "@/lib/Frontend/errorService";
 import { Board } from "@/types/Board/board";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
