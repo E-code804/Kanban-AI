@@ -1,7 +1,8 @@
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Task } from "@/types/Task/task";
 import { Loader2 } from "lucide-react";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Types } from "mongoose";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 interface TaskEditFormProps {
   task: Task;
@@ -14,11 +15,19 @@ type UpdatedTask = {
   status: "notStarted" | "inProgress" | "verification" | "finished";
   priority: "Low" | "Medium" | "High";
   dueDate?: Date;
+  assignedTo?: Types.ObjectId;
 };
 
+interface MemberType {
+  _id: Types.ObjectId;
+  name: string;
+}
+
 const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
-  const { dispatch } = useTask();
+  const { state, dispatch } = useTask();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [members, setMembers] = useState<MemberType[]>();
+  //   const [selectedMember, setSelectedMember] = useState<string>(""); // Will be the member's ID.
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
   const [isLoadingDelete, setIsLoadingDelete] = useState<boolean>(false);
   const [formData, setFormData] = useState({
@@ -27,7 +36,29 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
     status: task.status,
     priority: task.priority,
     dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
+    assignedTo: task.assignedTo,
   });
+
+  useEffect(() => {
+    const getMembers = async () => {
+      try {
+        const response = await fetch(`/api/kanban/boards/${state.boardId}`);
+        if (!response.ok) {
+          console.error("Failed to fetch board members");
+          return;
+        }
+        const data = await response.json();
+        setMembers(data.board.members);
+      } catch (err) {
+        console.error("Error fetching members:", err);
+      }
+    };
+
+    // if (state.boardId) {
+    //   getMembers();
+    // }
+    getMembers();
+  }, []);
 
   const validateForm = (updatedTask: UpdatedTask) => {
     const newErrors: Record<string, string> = {};
@@ -44,6 +75,7 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -242,6 +274,41 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
                 <option value="High">High</option>
               </select>
             </div>
+          </div>
+
+          {/* Assign to */}
+          <div>
+            <label
+              htmlFor="assignedTo"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Assign to:
+            </label>
+            <select
+              id="assignedTo"
+              name="assignedTo"
+              value={formData.assignedTo?.toString() || ""}
+              onChange={handleInputChange}
+              className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+                errors.member
+                  ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300"
+              }`}
+            >
+              <option value="" disabled>
+                -- Select a member --
+              </option>
+              <option value="test">test</option>
+              {members &&
+                members.map((member: MemberType) => (
+                  <option key={member._id.toString()} value={member._id.toString()}>
+                    {member.name}
+                  </option>
+                ))}
+            </select>
+            {errors.member && (
+              <p className="mt-1 text-sm text-red-600">{errors.member}</p>
+            )}
           </div>
 
           {/* Due Date */}
