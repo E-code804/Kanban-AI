@@ -1,12 +1,7 @@
 import { useTask } from "@/app/hooks/useTaskContext";
-import { Board } from "@/types/Board/board";
+import { UserBoardsProps } from "@/types/Board/board";
 import { Types } from "mongoose";
-import React, { useEffect } from "react";
-
-interface UserBoardsProps {
-  loading: boolean;
-  boards: Board[];
-}
+import { useEffect } from "react";
 
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
   const { state, dispatch } = useTask();

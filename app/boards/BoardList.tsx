@@ -9,6 +9,8 @@ interface BoardListProps {
   userId: string;
 }
 
+// Could add pagination
+
 const BoardList = ({ userId }: BoardListProps) => {
   const [boards, setBoards] = useState<BoardType[]>([]);
   const router = useRouter();

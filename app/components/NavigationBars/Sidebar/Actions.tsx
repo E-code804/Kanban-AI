@@ -7,6 +7,7 @@ const Actions = () => {
   const handleCreateBoard = () => {
     router.push("/boards/new");
   };
+
   return (
     <div className="p-6 border-b border-gray-100">
       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">

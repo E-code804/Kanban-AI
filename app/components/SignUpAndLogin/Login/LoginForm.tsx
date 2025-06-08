@@ -5,7 +5,6 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-// TODO: For here and signup, if session exists, redirect to home page.
 const LoginForm = () => {
   const router = useRouter();
   const params = useSearchParams();

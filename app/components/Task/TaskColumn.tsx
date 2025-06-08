@@ -1,14 +1,6 @@
-import { Task } from "@/types/Task/task";
+import { Task, TaskColumnProps } from "@/types/Task/task";
 import { Droppable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
-
-interface TaskColumnProps {
-  title: string;
-  tasks: Task[];
-  status: string;
-  color: string;
-  icon: React.ReactNode;
-}
 
 const TaskColumn = ({ title, tasks, status, color, icon }: TaskColumnProps) => {
   return (

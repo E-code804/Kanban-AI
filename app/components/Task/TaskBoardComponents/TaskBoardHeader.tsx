@@ -9,6 +9,7 @@ const TaskBoardHeader = () => {
   const handleAddTaskClick = () => {
     router.push(`/boards/${state.boardId}/tasks/new`);
   };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
       <div className="flex-1">

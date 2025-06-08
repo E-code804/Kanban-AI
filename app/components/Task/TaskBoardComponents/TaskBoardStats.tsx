@@ -1,15 +1,5 @@
-import { Task } from "@/types/Task/task";
-import React, { JSX } from "react";
+import { TaskBoardStatsProps } from "@/types/Task/task";
 
-interface TaskBoardStatsProps {
-  columns: {
-    title: string;
-    status: string;
-    color: string;
-    icon: JSX.Element;
-  }[];
-  getTasksByStatus: (status: string) => Task[];
-}
 const TaskBoardStats = ({ columns, getTasksByStatus }: TaskBoardStatsProps) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">

@@ -30,3 +30,9 @@ export type BoardContextAction =
       type: "SET_BOARD_INFO";
       payload: { selectedBoardId: string; boardName: string };
     };
+
+// Used in UserBoards.tsx
+export interface UserBoardsProps {
+  loading: boolean;
+  boards: Board[];
+}

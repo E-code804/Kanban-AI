@@ -1,33 +1,12 @@
 import { useTask } from "@/app/hooks/useTaskContext";
-import { Task } from "@/types/Task/task";
+import { MemberType, TaskEditFormProps, UpdatedTask } from "@/types/Task/task";
 import { Loader2 } from "lucide-react";
-import { Types } from "mongoose";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-
-interface TaskEditFormProps {
-  task: Task;
-  setToggleTaskForm: Dispatch<SetStateAction<boolean>>;
-}
-
-type UpdatedTask = {
-  title: string;
-  description?: string;
-  status: "notStarted" | "inProgress" | "verification" | "finished";
-  priority: "Low" | "Medium" | "High";
-  dueDate?: Date;
-  assignedTo?: Types.ObjectId;
-};
-
-interface MemberType {
-  _id: Types.ObjectId;
-  name: string;
-}
+import { useEffect, useState } from "react";
 
 const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
   const { state, dispatch } = useTask();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<MemberType[]>();
-  //   const [selectedMember, setSelectedMember] = useState<string>(""); // Will be the member's ID.
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
   const [isLoadingDelete, setIsLoadingDelete] = useState<boolean>(false);
   const [formData, setFormData] = useState({

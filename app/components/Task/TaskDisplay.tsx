@@ -1,14 +1,12 @@
 // components/TaskDisplay.tsx
 "use client";
 import { useTask } from "@/app/hooks/useTaskContext";
-import { Task } from "@/types/Task/task";
+import { Task, TaskStatus } from "@/types/Task/task";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Types } from "mongoose";
 import TaskBoardHeader from "./TaskBoardComponents/TaskBoardHeader";
 import TaskBoardStats from "./TaskBoardComponents/TaskBoardStats";
 import TaskColumn from "./TaskColumn";
-
-type TaskStatus = "notStarted" | "inProgress" | "verification" | "finished";
 
 const TaskDisplay = () => {
   const { state, dispatch } = useTask();
