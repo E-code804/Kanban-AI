@@ -48,6 +48,8 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
           return;
         }
         const data = await response.json();
+        // console.log(state.boardId, data);
+
         setMembers(data.board.members);
       } catch (err) {
         console.error("Error fetching members:", err);
@@ -298,7 +300,6 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
               <option value="" disabled>
                 -- Select a member --
               </option>
-              <option value="test">test</option>
               {members &&
                 members.map((member: MemberType) => (
                   <option key={member._id.toString()} value={member._id.toString()}>

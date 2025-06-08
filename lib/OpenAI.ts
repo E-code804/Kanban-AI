@@ -45,8 +45,8 @@ Output ONLY valid JSON. For example:
   "assignedTo": "Jess",
   "priority": "High"
 }
-If any field cannot be inferred, set it to null or an empty array. DO NOT include the ID of the assigned user in your response.
-Here is the task: ${task}, assign to user with ID: ${assigneeId}. DO NOT include the ID of the assigned user in your response.
+If any field cannot be inferred, set it to null or an empty array. DO NOT include the ID of the assigned user in the "description" field.
+Here is the task: ${task}, assign to user with ID: ${assigneeId}. DO NOT include the ID of the assigned user in the "description" field.
   `.trim();
 
   // Instruct the model to return valid JSON and follow the schema below.

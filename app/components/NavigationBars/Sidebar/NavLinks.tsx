@@ -1,14 +1,15 @@
+import Link from "next/link";
 import React from "react";
 
 const NavLinks = () => {
   return (
     <div className="border-t border-gray-100 p-6">
-      {/* <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
         Navigation
       </h3>
       <nav className="space-y-1">
-        <a
-          href="/dashboard"
+        <Link
+          href="/boards"
           className="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all duration-200"
         >
           <svg
@@ -30,9 +31,9 @@ const NavLinks = () => {
               d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"
             />
           </svg>
-          Dashboard
-        </a>
-        <a
+          Join Boards
+        </Link>
+        {/* <a
           href="/profile"
           className="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all duration-200"
         >
@@ -75,8 +76,8 @@ const NavLinks = () => {
             />
           </svg>
           Settings
-        </a>
-      </nav> */}
+        </a> */}
+      </nav>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+"use client";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { AlertCircle, CheckCircle, Loader2, Plus } from "lucide-react";
 import React, { useState } from "react";

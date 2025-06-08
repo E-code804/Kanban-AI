@@ -1,7 +1,8 @@
+"use client";
 import { useTask } from "@/app/hooks/useTaskContext";
 import { Loader2 } from "lucide-react";
 import { Types } from "mongoose";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 interface MemberType {
@@ -11,22 +12,25 @@ interface MemberType {
 
 const TaskForm = () => {
   const router = useRouter();
+  const { boardId } = useParams();
   const [taskDescription, setTaskDescription] = useState<string>();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<MemberType[]>();
   const [selectedMember, setSelectedMember] = useState<string>(""); // Will be the member's ID.
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { state, dispatch } = useTask();
+  const { dispatch } = useTask();
 
   useEffect(() => {
     const getMembers = async () => {
       try {
-        const response = await fetch(`/api/kanban/boards/${state.boardId}`);
+        const response = await fetch(`/api/kanban/boards/${boardId}`);
         if (!response.ok) {
           console.error("Failed to fetch board members");
           return;
         }
         const data = await response.json();
+        console.log(data);
+
         setMembers(data.board.members);
       } catch (err) {
         console.error("Error fetching members:", err);
@@ -36,8 +40,10 @@ const TaskForm = () => {
     // if (state.boardId) {
     //   getMembers();
     // }
+    // console.log(boardId);
+
     getMembers();
-  }, [state.boardId]);
+  }, [boardId]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -57,7 +63,7 @@ const TaskForm = () => {
 
     // console.log(taskDescription, selectedMember);
     try {
-      const response = await fetch(`/api/kanban/boards/${state.boardId}/task`, {
+      const response = await fetch(`/api/kanban/boards/${boardId}/task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
