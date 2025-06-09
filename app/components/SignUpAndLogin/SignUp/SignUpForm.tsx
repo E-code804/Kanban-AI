@@ -1,13 +1,13 @@
 "use client";
 import { useRedirectIfAuthenticated } from "@/app/hooks/useRedirectIfAuthenticated";
-import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import {
   getPasswordStrength,
   handleSignUpSubmit,
   validateSignUpForm,
-} from "./signUpService";
+} from "@/lib/Frontend/services/signUpService";
+import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const SignUpForm = () => {
   const router = useRouter();

@@ -1,5 +1,7 @@
 import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
+import { setErrors as setErrorMessages } from "@/lib/Frontend/services/errorService";
+import { getMembers } from "@/lib/Frontend/services/taskEditFormService";
 import { MemberType, TaskEditFormProps, UpdatedTask } from "@/types/Task/task";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -8,9 +10,11 @@ import ErrorMessage from "../ErrorMessage";
 const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
   const { state: taskState, dispatch: taskDispatch } = useTask();
   const { state: errorState, dispatch: errorDispatch } = useError();
+
   const fetchMembersError = "fetchMembersError";
   const deleteError = "deleteError";
   const updateError = "updateError";
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<MemberType[]>();
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
@@ -25,46 +29,8 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
   });
 
   useEffect(() => {
-    const getMembers = async () => {
-      try {
-        const response = await fetch(`/api/kanban/boards/${taskState.boardId}`);
-        const json = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to fetch board members");
-          errorDispatch({
-            type: "SET_ERRORS",
-            payload: {
-              errorName: fetchMembersError,
-              errorMessage:
-                json.error ||
-                json.message ||
-                `Failed to fetch board members (${response.status})`,
-            },
-          });
-          return;
-        }
-
-        // Success - clear errors and set members
-        errorDispatch({ type: "RESET_ERRORS" });
-        setMembers(json.board.members);
-      } catch (error) {
-        console.error("Error fetching members:", error);
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName: fetchMembersError,
-            errorMessage:
-              error instanceof Error
-                ? error.message
-                : "An unexpected error occurred",
-          },
-        });
-      }
-    };
-
-    getMembers();
-  }, [errorDispatch, taskState.boardId]);
+    getMembers(taskState, setMembers, errorDispatch, fetchMembersError);
+  }, [errorDispatch, taskState, taskState.boardId]);
 
   const validateForm = (updatedTask: UpdatedTask) => {
     const newErrors: Record<string, string> = {};
@@ -100,16 +66,9 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
 
       if (!response.ok) {
         console.error("Failed to delete task");
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName: deleteError,
-            errorMessage:
-              json.error ||
-              json.message ||
-              `Failed to delete task (${response.status})`,
-          },
-        });
+        const errorMessage =
+          json.error || json.message || `Failed to delete task (${response.status})`;
+        errorDispatch(setErrorMessages(deleteError, errorMessage));
         return;
       }
 
@@ -122,14 +81,11 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
       setToggleTaskForm(false);
     } catch (error) {
       console.error("Error deleting task:", error);
-      errorDispatch({
-        type: "SET_ERRORS",
-        payload: {
-          errorName: deleteError,
-          errorMessage:
-            error instanceof Error ? error.message : "An unexpected error occurred",
-        },
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : ("An unexpected error occurred" as string);
+      errorDispatch(setErrorMessages(deleteError, errorMessage));
     } finally {
       setIsLoadingDelete(false);
     }
@@ -159,16 +115,9 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
 
       if (!response.ok) {
         console.log("Error updating task");
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName: updateError,
-            errorMessage:
-              json.error ||
-              json.message ||
-              `Failed to update task (${response.status})`,
-          },
-        });
+        const errorMessage =
+          json.error || json.message || `Failed to update task (${response.status})`;
+        errorDispatch(setErrorMessages(updateError, errorMessage));
         return;
       }
 
@@ -181,14 +130,11 @@ const TaskEditForm = ({ task, setToggleTaskForm }: TaskEditFormProps) => {
       setToggleTaskForm(false);
     } catch (error) {
       console.log(error);
-      errorDispatch({
-        type: "SET_ERRORS",
-        payload: {
-          errorName: updateError,
-          errorMessage:
-            error instanceof Error ? error.message : "An unexpected error occurred",
-        },
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : ("An unexpected error occurred" as string);
+      errorDispatch(setErrorMessages(updateError, errorMessage));
     } finally {
       setIsLoadingSubmit(false);
     }

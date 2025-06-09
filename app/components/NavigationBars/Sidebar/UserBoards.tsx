@@ -1,52 +1,12 @@
 import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
+import { handleBoardClick } from "@/lib/Frontend/services/userBoardService";
 import { UserBoardsProps } from "@/types/Board/board";
-import { Types } from "mongoose";
 
 const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
   const { dispatch: taskDispatch } = useTask();
   const { dispatch: errorDispatch } = useError();
   const errorName = "fetchTaskError"; // Used in conjuction with TaskDisplay.
-
-  // Sets the board ID and fetches tasks for that board.
-  // Store in local storage the prev board ID and tasks so refreshing doesn't reset.s
-  const handleBoardClick = async (boardId: Types.ObjectId, boardTitle: string) => {
-    try {
-      const boardIdStr = boardId.toString();
-      const response = await fetch(`/api/kanban/boards/${boardId}/task`);
-      const json = await response.json();
-
-      if (!response.ok) {
-        console.log("An error occurred fetching boards.");
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName,
-            errorMessage:
-              json.message || "Failed to fetch tasks for selected board.",
-          },
-        });
-        return;
-      }
-
-      taskDispatch({
-        type: "SET_TASKS",
-        payload: { boardId: boardIdStr, boardName: boardTitle, tasks: json.tasks },
-      });
-      errorDispatch({ type: "RESET_ERRORS" });
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-
-      errorDispatch({
-        type: "SET_ERRORS",
-        payload: {
-          errorName,
-          errorMessage:
-            error instanceof Error ? error.message : "An unexpected error occurred",
-        },
-      });
-    }
-  };
 
   return (
     <div className="p-6">
@@ -74,7 +34,15 @@ const UserBoards: React.FC<UserBoardsProps> = ({ loading, boards }) => {
           {boards.map((board) => (
             <div
               key={board._id.toString()}
-              onClick={() => handleBoardClick(board._id, board.title)}
+              onClick={() =>
+                handleBoardClick(
+                  board._id,
+                  board.title,
+                  taskDispatch,
+                  errorDispatch,
+                  errorName
+                )
+              }
               className="cursor-pointer block p-3 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-transparent hover:border-indigo-100 transition-all duration-200 group"
             >
               <div className="flex items-center">

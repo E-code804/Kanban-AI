@@ -2,6 +2,7 @@
 "use client";
 import { useError } from "@/app/hooks/useErrorContext";
 import { useTask } from "@/app/hooks/useTaskContext";
+import { setErrors } from "@/lib/Frontend/services/errorService";
 import { Task, TaskStatus } from "@/types/Task/task";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Types } from "mongoose";
@@ -32,27 +33,20 @@ const TaskDisplay = () => {
 
       if (!response.ok) {
         console.log("Error updating task");
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName: updateTaskError,
-            errorMessage: json.error || `Failed to update task (${response.status})`,
-          },
-        });
+        const errorMessage =
+          json.error || `Failed to update task (${response.status})`;
+        errorDispatch(setErrors(updateTaskError, errorMessage));
         return;
       }
 
       errorDispatch({ type: "RESET_ERRORS" });
     } catch (error) {
       console.log(`Server error: ${error}`);
-      errorDispatch({
-        type: "SET_ERRORS",
-        payload: {
-          errorName: updateTaskError,
-          errorMessage:
-            error instanceof Error ? error.message : "An unexpected error occurred",
-        },
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : ("An unexpected error occurred" as string);
+      errorDispatch(setErrors(updateTaskError, errorMessage));
     }
   };
 

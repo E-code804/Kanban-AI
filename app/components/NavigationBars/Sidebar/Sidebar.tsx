@@ -1,6 +1,6 @@
 import ErrorMessage from "@/app/components/ErrorMessage";
 import { useError } from "@/app/hooks/useErrorContext";
-// import { setErrors } from "@/lib/Frontend/errorService";
+import { fetchUserBoards } from "@/lib/Frontend/services/sidebarService";
 import { Board } from "@/types/Board/board";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -20,46 +20,8 @@ const Sidebar = ({ onClose }: SidebarProps) => {
   const errorName = "fetchBoardsError";
 
   useEffect(() => {
-    const fetchUserBoards = async () => {
-      setLoading(true);
-
-      try {
-        const response = await fetch("/api/kanban/boards");
-        const json = await response.json();
-
-        if (!response.ok) {
-          console.log("An error occurred fetching boards.");
-          errorDispatch({
-            type: "SET_ERRORS",
-            payload: {
-              errorName,
-              errorMessage: json.message || "Failed to fetch boards for user.",
-            },
-          });
-          return;
-        }
-
-        setBoards(json.boards || []);
-        errorDispatch({ type: "RESET_ERRORS" });
-      } catch (error) {
-        console.error("Error fetching boards:", error);
-        errorDispatch({
-          type: "SET_ERRORS",
-          payload: {
-            errorName,
-            errorMessage:
-              error instanceof Error
-                ? error.message
-                : "An unexpected error occurred",
-          },
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (session) {
-      fetchUserBoards();
+      fetchUserBoards({ setLoading, setBoards, errorDispatch, errorName });
     }
   }, [errorDispatch, session]);
 
