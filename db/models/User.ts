@@ -16,4 +16,8 @@ const UserSchema = new Schema<IUser>({
   createdAt: { type: Date, default: Date.now },
 });
 
+// UserSchema.index({ email: 1 }, { unique: true }); // Login/authentication - email lookup
+UserSchema.index({ name: 1 }); // Search users by name
+UserSchema.index({ boards: 1 }); // Find users who have access to specific boards
+
 export default mongoose.models.User || model<IUser>("User", UserSchema);

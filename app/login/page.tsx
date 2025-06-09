@@ -14,6 +14,12 @@ const page = () => {
         </Suspense>
 
         <Terms />
+
+        <div className="mt-6 text-center">
+          <p className="text-sm font-bold text-gray-600 underline">
+            To demo - login with email: test@test.com, password: test
+          </p>
+        </div>
       </div>
     </div>
   );

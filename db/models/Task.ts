@@ -38,4 +38,8 @@ const TaskSchema = new Schema<ITask>(
   { timestamps: true } // createdAt & updatedAt
 );
 
+TaskSchema.index({ boardId: 1 }); // Primary query - get all tasks for a board
+TaskSchema.index({ assignedTo: 1 }); // Get tasks assigned to a user
+TaskSchema.index({ createdBy: 1 }); // Get tasks created by a user
+
 export default mongoose.models.Task || model<ITask>("Task", TaskSchema);
